@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <span className="grid size-7 place-items-center rounded-lg bg-linear-to-br from-accent-500 to-fuchsia-500 text-white shadow-sm">
                 <LayoutGrid className="size-4" />
               </span>
-              Padu
+              Changlun Best
             </Link>
             <nav>
               <Link href="/admin" aria-label="Admin" title="Admin" className="icon-btn size-9">
