@@ -8,19 +8,23 @@ import { ItemForm } from "@/components/ItemForm";
 import { LoginForm } from "@/components/LoginForm";
 import { isAdmin } from "@/lib/auth";
 import { getCategories } from "@/lib/data";
+import { googleConfig } from "@/lib/google";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
-export default function AdminPage() {
+export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
     <Suspense fallback={<GridSkeleton count={2} />}>
-      <Admin />
+      <Admin searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Admin() {
-  if (!(await isAdmin())) return <LoginForm />;
+async function Admin({ searchParams }: { searchParams: PageProps<"/admin">["searchParams"] }) {
+  if (!(await isAdmin())) {
+    const { error } = await searchParams;
+    return <LoginForm googleEnabled={googleConfig() !== null} error={typeof error === "string" ? error : undefined} />;
+  }
   const categories = await getCategories();
 
   return (
