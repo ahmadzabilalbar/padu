@@ -3,13 +3,22 @@ import { ArrowUpRight, FolderOpen, Pin } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { AdminControls } from "./AdminControls";
 
-export function CategoryGrid({ categories, isAdmin }: { categories: Category[]; isAdmin: boolean }) {
+type Props = {
+  categories: Category[];
+  isAdmin: boolean;
+  /** Full-width layout (no sidebar), so allow a third column on large screens. */
+  wide?: boolean;
+};
+
+export function CategoryGrid({ categories, isAdmin, wide }: Props) {
   if (categories.length === 0) {
     return (
       <div className="card flex flex-col items-center gap-2 px-6 py-16 text-center">
         <FolderOpen className="size-8 text-zinc-300 dark:text-zinc-700" />
         <p className="font-medium">No categories yet</p>
-        <p className="text-sm text-zinc-500">Create the first one to get the board started.</p>
+        <p className="text-sm text-zinc-500">
+          {isAdmin ? "Create the first one to get the board started." : "Check back soon."}
+        </p>
       </div>
     );
   }
@@ -17,7 +26,7 @@ export function CategoryGrid({ categories, isAdmin }: { categories: Category[]; 
   const pinned = categories.filter((c) => c.is_pinned);
 
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className={`grid gap-3 sm:grid-cols-2 ${wide ? "lg:grid-cols-3" : ""}`}>
       {categories.map((c) => {
         const idx = pinned.findIndex((p) => p.id === c.id);
         return (

@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { createCategory } from "@/app/actions";
-import { FormMessage, Honeypot } from "./FormMessage";
+import { FormMessage } from "./FormMessage";
 import { useFormAction } from "./useFormAction";
 
 export function CategoryForm() {
@@ -12,7 +12,7 @@ export function CategoryForm() {
     <form ref={formRef} onSubmit={onSubmit} className="card relative space-y-4 p-5 sm:p-6">
       <div>
         <h2 className="font-semibold tracking-tight">Start a new category</h2>
-        <p className="mt-1 text-sm text-zinc-500">No sign-up needed. Give it a clear name.</p>
+        <p className="mt-1 text-sm text-zinc-500">Only you can see this. Visitors add items inside it.</p>
       </div>
       <div>
         <label htmlFor="cat-name" className="label">Name</label>
@@ -24,7 +24,6 @@ export function CategoryForm() {
         </label>
         <input id="cat-desc" name="description" maxLength={200} placeholder="What belongs here?" className="field" />
       </div>
-      <Honeypot />
       <FormMessage state={state} />
       <button type="submit" disabled={pending} className="btn-primary w-full">
         <Plus className="size-4" />

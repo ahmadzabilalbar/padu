@@ -17,13 +17,13 @@ function fail(err: unknown): ActionState {
 }
 
 /* ------------------------------------------------------------------ */
-/* Public: anyone can post categories and items (no login)             */
+/* Categories: admin only. Items: anyone (no login).                   */
 /* ------------------------------------------------------------------ */
 
 export async function createCategory(_prev: ActionState, form: FormData): Promise<ActionState> {
   let slug = "";
   try {
-    if (isBot(form)) return { ok: true };
+    if (!(await isAdmin())) return { ok: false, error: "Only the admin can create categories." };
     const name = text(form, "name", 60, true)!;
     const description = text(form, "description", 200);
     const base = slugify(name);
