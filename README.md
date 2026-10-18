@@ -1,4 +1,4 @@
-# Padu Board
+# Changlun Best
 
 A shared board built with Next.js 16, Tailwind CSS v4 and Supabase.
 

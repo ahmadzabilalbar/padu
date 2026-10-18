@@ -8,7 +8,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "Padu Board", template: "%s · Padu Board" },
+  title: { default: "Changlun Best", template: "%s · Changlun Best" },
   description: "A shared board. Post a category, add items, sort them.",
 };
 
