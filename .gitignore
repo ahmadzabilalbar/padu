@@ -44,3 +44,6 @@ next-env.d.ts
 .supabase-token
 .vercel
 !.env.example
+
+.vercel
+.env*
