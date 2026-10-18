@@ -15,17 +15,3 @@ export function FormMessage({ state }: { state: ActionState }) {
     );
   return null;
 }
-
-/** Hidden field that bots fill in and humans never see. */
-export function Honeypot() {
-  return (
-    <input
-      type="text"
-      name="website"
-      tabIndex={-1}
-      autoComplete="off"
-      aria-hidden
-      className="absolute -left-[9999px] h-0 w-0 opacity-0"
-    />
-  );
-}

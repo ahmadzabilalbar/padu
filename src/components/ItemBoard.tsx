@@ -78,7 +78,7 @@ export function ItemBoard({ items, isAdmin }: { items: Item[]; isAdmin: boolean 
           <Inbox className="size-8 text-zinc-300 dark:text-zinc-700" />
           <p className="font-medium">{items.length ? "No matches" : "Nothing here yet"}</p>
           <p className="text-sm text-zinc-500">
-            {items.length ? "Try a different search." : "Be the first to add an item."}
+            {items.length ? "Try a different search." : isAdmin ? "Add the first item." : "Check back soon."}
           </p>
         </div>
       ) : (
@@ -90,9 +90,7 @@ export function ItemBoard({ items, isAdmin }: { items: Item[]; isAdmin: boolean 
                 <ItemCard item={item}>
                   {isAdmin && (
                     <AdminControls
-                      kind="item"
-                      id={item.id}
-                      name={item.title}
+                      target={{ kind: "item", values: item }}
                       pinned={item.is_pinned}
                       canMoveUp={idx > 0}
                       canMoveDown={idx >= 0 && idx < pinned.length - 1}
@@ -155,8 +153,12 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
             </p>
           )}
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
-            <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.author || "Anonymous"}</span>
-            <span aria-hidden>·</span>
+            {item.author && (
+              <>
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.author}</span>
+                <span aria-hidden>·</span>
+              </>
+            )}
             <time dateTime={item.created_at} suppressHydrationWarning>
               {date.format(new Date(item.created_at))}
             </time>

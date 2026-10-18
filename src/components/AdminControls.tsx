@@ -1,14 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, Loader2, Pin, PinOff, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Loader2, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import { deleteRow, movePinned, togglePin } from "@/app/actions";
+import { EditDialog, type EditTarget } from "./EditDialog";
 
 type Props = {
-  kind: "category" | "item";
-  id: string;
-  name: string;
+  /** The row these controls act on, with its current values for the edit form. */
+  target: EditTarget;
   pinned: boolean;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -16,9 +16,14 @@ type Props = {
   afterDelete?: string;
 };
 
-export function AdminControls({ kind, id, name, pinned, canMoveUp, canMoveDown, afterDelete }: Props) {
+export function AdminControls({ target, pinned, canMoveUp, canMoveDown, afterDelete }: Props) {
   const [pending, start] = useTransition();
+  const [editing, setEditing] = useState(false);
+  const closeEdit = useCallback(() => setEditing(false), []);
   const router = useRouter();
+  const { kind } = target;
+  const { id } = target.values;
+  const name = target.kind === "item" ? target.values.title : target.values.name;
 
   const run = (fn: () => Promise<void>) =>
     start(async () => {
@@ -41,6 +46,17 @@ export function AdminControls({ kind, id, name, pinned, canMoveUp, canMoveDown, 
   return (
     <div className="flex items-center gap-0.5" aria-busy={pending}>
       {pending && <Loader2 className="mr-1 size-4 animate-spin text-zinc-400" />}
+      {editing && <EditDialog target={target} onClose={closeEdit} />}
+      <button
+        type="button"
+        title="Edit"
+        aria-label="Edit"
+        className="icon-btn"
+        disabled={pending}
+        onClick={() => setEditing(true)}
+      >
+        <Pencil className="size-4" />
+      </button>
       {pinned && (
         <>
           <button

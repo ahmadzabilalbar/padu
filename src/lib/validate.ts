@@ -46,14 +46,9 @@ export function slugify(name: string) {
   );
 }
 
-/** Bots fill hidden fields; humans don't. */
-export function isBot(form: FormData) {
-  return Boolean(form.get("website"));
-}
-
 export class ValidationError extends Error {}
 
-const LABELS: Record<string, string> = { body: "Details", url: "Link", author: "Name" };
+const LABELS: Record<string, string> = { body: "Details", url: "Link", author: "Credit" };
 
 function label(key: string) {
   return LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);

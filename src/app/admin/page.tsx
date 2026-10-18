@@ -53,7 +53,7 @@ async function Admin({ searchParams }: { searchParams: PageProps<"/admin">["sear
           <div className="card p-5 sm:p-6">
             <h2 className="mb-4 font-semibold tracking-tight">Add an item to a category</h2>
             {categories.length ? (
-              <ItemForm categories={categories.map(({ id, name }) => ({ id, name }))} isAdmin />
+              <ItemForm categories={categories.map(({ id, name }) => ({ id, name }))} />
             ) : (
               <p className="text-sm text-zinc-500">Create a category first.</p>
             )}

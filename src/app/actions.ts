@@ -6,7 +6,7 @@ import { checkPassword, endAdminSession, isAdmin, requireAdmin, startAdminSessio
 import { tags } from "@/lib/data";
 import { db } from "@/lib/supabase";
 import type { ActionState } from "@/lib/types";
-import { httpUrl, isBot, multiline, slugify, text, uuid, ValidationError } from "@/lib/validate";
+import { httpUrl, multiline, slugify, text, uuid, ValidationError } from "@/lib/validate";
 
 type Kind = "category" | "item";
 
@@ -17,15 +17,29 @@ function fail(err: unknown): ActionState {
 }
 
 /* ------------------------------------------------------------------ */
-/* Categories: admin only. Items: anyone (no login).                   */
+/* Everything here is admin only. Visitors can only read.              */
 /* ------------------------------------------------------------------ */
+
+const NOT_ADMIN: ActionState = { ok: false, error: "Only the admin can do that. Please sign in again." };
+
+function categoryFields(form: FormData) {
+  return { name: text(form, "name", 60, true)!, description: text(form, "description", 200) };
+}
+
+function itemFields(form: FormData) {
+  return {
+    title: text(form, "title", 120, true)!,
+    body: multiline(form, "body", 1000),
+    url: httpUrl(form, "url"),
+    author: text(form, "author", 40),
+  };
+}
 
 export async function createCategory(_prev: ActionState, form: FormData): Promise<ActionState> {
   let slug = "";
   try {
-    if (!(await isAdmin())) return { ok: false, error: "Only the admin can create categories." };
-    const name = text(form, "name", 60, true)!;
-    const description = text(form, "description", 200);
+    if (!(await isAdmin())) return NOT_ADMIN;
+    const { name, description } = categoryFields(form);
     const base = slugify(name);
 
     // Retry with a short suffix if the slug is already taken.
@@ -44,12 +58,9 @@ export async function createCategory(_prev: ActionState, form: FormData): Promis
 
 export async function createItem(_prev: ActionState, form: FormData): Promise<ActionState> {
   try {
-    if (isBot(form)) return { ok: true, message: "Added to the board." };
+    if (!(await isAdmin())) return NOT_ADMIN;
     const categoryId = uuid(form.get("categoryId"));
-    const title = text(form, "title", 120, true)!;
-    const body = multiline(form, "body", 1000);
-    const url = httpUrl(form, "url");
-    const author = text(form, "author", 40);
+    const fields = itemFields(form);
 
     const { data: category } = await db()
       .from("categories")
@@ -58,16 +69,12 @@ export async function createItem(_prev: ActionState, form: FormData): Promise<Ac
       .maybeSingle();
     if (!category) throw new ValidationError("That category no longer exists.");
 
-    // Only the admin can put an item straight on top.
-    const pin = form.get("pin") === "on" && (await isAdmin());
+    const pin = form.get("pin") === "on";
     const { error } = await db()
       .from("items")
       .insert({
         category_id: categoryId,
-        title,
-        body,
-        url,
-        author,
+        ...fields,
         is_pinned: pin,
         pin_order: pin ? await nextPinOrder("item", categoryId) : 0,
       });
@@ -76,6 +83,34 @@ export async function createItem(_prev: ActionState, form: FormData): Promise<Ac
     updateTag(tags.items(categoryId));
     updateTag(tags.categories); // item counts
     return { ok: true, message: pin ? "Added and pinned to the top." : "Added to the board." };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/** Edit a category's name/description. The slug (its link) stays the same. */
+export async function updateCategory(_prev: ActionState, form: FormData): Promise<ActionState> {
+  try {
+    if (!(await isAdmin())) return NOT_ADMIN;
+    const id = uuid(form.get("id"));
+    const { error } = await db().from("categories").update(categoryFields(form)).eq("id", id);
+    if (error) throw error;
+    updateTag(tags.categories);
+    return { ok: true, message: "Saved." };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function updateItem(_prev: ActionState, form: FormData): Promise<ActionState> {
+  try {
+    if (!(await isAdmin())) return NOT_ADMIN;
+    const id = uuid(form.get("id"));
+    const scope = await scopeOf("item", id);
+    const { error } = await db().from("items").update(itemFields(form)).eq("id", id);
+    if (error) throw error;
+    invalidate("item", scope); // categories too: card previews show item titles
+    return { ok: true, message: "Saved." };
   } catch (err) {
     return fail(err);
   }

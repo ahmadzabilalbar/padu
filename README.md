@@ -2,8 +2,8 @@
 
 A shared board built with Next.js 16, Tailwind CSS v4 and Supabase.
 
-- **Anyone** (no login) can add items to a category, search, and sort items (Newest / Oldest / A–Z / Z–A).
-- **Admin** signs in with a single password, is the only one who can create categories, and has the last say: pin categories or items to the top, reorder pinned ones, add items to any category (optionally pinned), and delete.
+- **Visitors** (no login) can browse, search, and sort items (Newest / Oldest / A–Z / Z–A). They can't change anything.
+- **Admin** signs in with Google (only `ADMIN_EMAIL`) or a password, and is the only one who can create, edit, delete, pin and reorder categories and items.
 - Pinned items always stay on top, in the admin's order, whatever sort a visitor picks.
 
 ## How it works

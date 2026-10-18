@@ -42,33 +42,38 @@ async function Board({ params }: { params: Promise<{ slug: string }> }) {
           </div>
           {category.description && <p className="mt-2 text-zinc-600 dark:text-zinc-400">{category.description}</p>}
         </div>
-        <div className="flex items-center gap-2">
-          {admin && (
+        {admin && (
+          <div className="flex items-center gap-2">
             <div className="card px-1.5 py-1">
               <AdminControls
-                kind="category"
-                id={category.id}
-                name={category.name}
+                target={{
+                  kind: "category",
+                  values: { id: category.id, name: category.name, description: category.description },
+                }}
                 pinned={category.is_pinned}
                 canMoveUp={false}
                 canMoveDown={false}
                 afterDelete="/"
               />
             </div>
-          )}
-          <a href="#add" className="btn-accent lg:hidden">
-            <Plus className="size-4" /> Add item
-          </a>
-        </div>
+            <a href="#add" className="btn-accent lg:hidden">
+              <Plus className="size-4" /> Add item
+            </a>
+          </div>
+        )}
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
-        <ItemBoard items={items} isAdmin={admin} />
-        <aside id="add" className="card scroll-mt-20 p-5 sm:p-6 lg:sticky lg:top-20">
-          <h2 className="mb-4 font-semibold tracking-tight">Add to {category.name}</h2>
-          <ItemForm categoryId={category.id} isAdmin={admin} />
-        </aside>
-      </div>
+      {admin ? (
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
+          <ItemBoard items={items} isAdmin />
+          <aside id="add" className="card scroll-mt-20 p-5 sm:p-6 lg:sticky lg:top-20">
+            <h2 className="mb-4 font-semibold tracking-tight">Add to {category.name}</h2>
+            <ItemForm categoryId={category.id} />
+          </aside>
+        </div>
+      ) : (
+        <ItemBoard items={items} isAdmin={false} />
+      )}
     </>
   );
 }

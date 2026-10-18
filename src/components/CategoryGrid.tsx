@@ -73,9 +73,7 @@ export function CategoryGrid({ categories, isAdmin, wide }: Props) {
             {isAdmin && (
               <div className="absolute top-3 right-3">
                 <AdminControls
-                  kind="category"
-                  id={c.id}
-                  name={c.name}
+                  target={{ kind: "category", values: { id: c.id, name: c.name, description: c.description } }}
                   pinned={c.is_pinned}
                   canMoveUp={idx > 0}
                   canMoveDown={idx >= 0 && idx < pinned.length - 1}
