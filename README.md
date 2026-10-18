@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Padu Board
 
-## Getting Started
+A shared board built with Next.js 16, Tailwind CSS v4 and Supabase.
 
-First, run the development server:
+- **Anyone** (no login) can create categories, add items, search, and sort items (Newest / Oldest / A–Z / Z–A).
+- **Admin** signs in with a single password and has the last say: pin categories or items to the top, reorder pinned ones, add items to any category (optionally pinned), and delete.
+- Pinned items always stay on top, in the admin's order, whatever sort a visitor picks.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## How it works
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Piece | Where |
+| --- | --- |
+| DB schema + indexes + RLS | [supabase/schema.sql](supabase/schema.sql) |
+| Cached reads (`use cache` + `cacheTag`) | [src/lib/data.ts](src/lib/data.ts) |
+| All writes (server actions, validated) | [src/app/actions.ts](src/app/actions.ts) |
+| Admin session (HMAC-signed httpOnly cookie) | [src/lib/auth.ts](src/lib/auth.ts) |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Reads are cached by Next.js and invalidated with `updateTag` after each write, so pages are served from cache and the database is only hit when something changes. Indexes match the board order exactly (`pinned desc, pin_order, created_at desc`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The browser never talks to Supabase. Writes go through server actions using the Supabase secret key, and RLS allows public reads only.
 
-## Learn More
+## Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. **Supabase**: create a project, open **SQL Editor**, and run `supabase/schema.sql`.
+2. **Env**: copy `.env.example` to `.env.local` and fill it in:
+   - `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (Project Settings → API; the legacy `service_role` key also works)
+   - `ADMIN_PASSWORD`: the admin's password
+   - `SESSION_SECRET`: 32+ random characters (`openssl rand -base64 32`)
+3. Run it:
+   ```bash
+   npm install
+   npm run dev
+   ```
+   Open http://localhost:3000, and sign in at `/admin`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy to Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push this folder to a GitHub repo.
+2. In Vercel: **Add New → Project**, import the repo (framework is detected automatically).
+3. Add the four env vars from `.env.example` under **Settings → Environment Variables**.
+4. Deploy.
 
-## Deploy on Vercel
+Or from the CLI: `npx vercel`, then `npx vercel env add` for each variable, then `npx vercel --prod`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Posting is open to everyone, so spam is handled by input limits, a honeypot field, and admin deletion. If it becomes a problem, add rate limiting (e.g. Vercel WAF rules or Upstash) in `createCategory` / `createItem`.

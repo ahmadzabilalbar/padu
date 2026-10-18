@@ -1,26 +1,62 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  --color-accent-50: oklch(0.97 0.02 285);
+  --color-accent-100: oklch(0.94 0.04 285);
+  --color-accent-400: oklch(0.7 0.16 285);
+  --color-accent-500: oklch(0.6 0.2 285);
+  --color-accent-600: oklch(0.53 0.22 285);
+  --color-accent-700: oklch(0.47 0.21 285);
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+@layer base {
+  body {
+  @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100;
+    background-image: radial-gradient(60rem 30rem at 50% -10rem, var(--color-accent-100), transparent);
+  }
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-image: radial-gradient(60rem 30rem at 50% -10rem, oklch(0.3 0.08 285 / 0.45), transparent);
+    }
+  }
+  ::selection {
+  @apply bg-accent-500/25;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility card {
+  @apply rounded-2xl border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/60;
+}
+@utility field {
+  @apply w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-accent-500 focus:ring-4 focus:ring-accent-500/15 dark:border-zinc-800 dark:bg-zinc-950 dark:placeholder:text-zinc-600;
+}
+@utility label {
+  @apply mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-zinc-900 text-white shadow-sm hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200;
+}
+@utility btn-accent {
+  @apply btn bg-accent-600 text-white shadow-sm shadow-accent-600/20 hover:bg-accent-700;
+}
+@utility btn-ghost {
+  @apply btn text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+}
+@utility icon-btn {
+  @apply inline-flex size-8 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+}
+@utility skeleton {
+  @apply animate-pulse rounded-2xl bg-zinc-200/70 dark:bg-zinc-800/70;
 }
