@@ -37,11 +37,32 @@ export function CategoryGrid({ categories, isAdmin, wide }: Props) {
                 c.is_pinned ? "border-accent-500/40 ring-1 ring-accent-500/10 dark:border-accent-500/30" : ""
               }`}
             >
-              <div className="flex items-center gap-2 pr-24">
+              <div className={`flex items-center gap-2 ${isAdmin ? "pr-24" : ""}`}>
                 {c.is_pinned && <Pin className="size-4 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
                 <h3 className="truncate font-semibold tracking-tight">{c.name}</h3>
               </div>
-              <p className="mt-1 line-clamp-2 flex-1 text-sm text-zinc-500">{c.description || "No description."}</p>
+              {c.description && <p className="mt-1 line-clamp-1 text-sm text-zinc-500">{c.description}</p>}
+              <div className="mt-3 flex-1">
+                {c.preview.length ? (
+                  <ul className="space-y-1.5 text-sm">
+                    {c.preview.map((item) => (
+                      <li key={item.id} className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                        {item.is_pinned ? (
+                          <Pin className="size-3.5 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />
+                        ) : (
+                          <span className="mx-[5px] size-1 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
+                        )}
+                        <span className="truncate">{item.title}</span>
+                      </li>
+                    ))}
+                    {c.item_count > c.preview.length && (
+                      <li className="pl-[22px] text-xs text-zinc-500">+{c.item_count - c.preview.length} more</li>
+                    )}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
+                )}
+              </div>
               <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
                 <span className="rounded-full bg-zinc-100 px-2 py-0.5 font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                   {c.item_count} item{c.item_count === 1 ? "" : "s"}

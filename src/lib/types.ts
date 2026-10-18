@@ -7,6 +7,8 @@ export type Category = {
   pin_order: number;
   created_at: string;
   item_count: number;
+  /** Top items in board order (only filled on the category list). */
+  preview: { id: string; title: string; is_pinned: boolean }[];
 };
 
 export type Item = {
