@@ -31,13 +31,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </span>
               Padu
             </Link>
-            <nav className="flex items-center gap-1 text-sm">
-              <Link href="/" className="btn-ghost px-3 py-1.5">
-                Boards
-              </Link>
-              <Link href="/admin" className="btn-ghost px-3 py-1.5">
+            <nav>
+              <Link href="/admin" aria-label="Admin" title="Admin" className="icon-btn size-9">
                 <Shield className="size-4" />
-                <span className="hidden sm:inline">Admin</span>
               </Link>
             </nav>
           </div>
