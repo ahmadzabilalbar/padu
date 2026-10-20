@@ -10,76 +10,29 @@ import { AdminControls } from "./AdminControls";
 
 type Item = BoardItem;
 
-// "Newest" means newest on this board, so a reused item counts from when it was added here.
-const byNewest = (a: Item, b: Item) => b.added_at.localeCompare(a.added_at);
-const byTitle = (a: Item, b: Item) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
-
-const SORTS = {
-  // The admin's order: items arrive from the server already in it, and sort() is stable.
-  featured: { label: "Featured", fn: () => 0 },
-  newest: { label: "Newest", fn: byNewest },
-  oldest: { label: "Oldest", fn: (a: Item, b: Item) => -byNewest(a, b) },
-  az: { label: "A–Z", fn: byTitle },
-  za: { label: "Z–A", fn: (a: Item, b: Item) => -byTitle(a, b) },
-} as const;
-type SortKey = keyof typeof SORTS;
-
 const date = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" });
 
 export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categoryId: string; isAdmin: boolean }) {
-  const [sort, setSort] = useState<SortKey>("featured");
   const [query, setQuery] = useState("");
 
-  // The admin has the last say: pinned items always stay on top in the admin's
-  // order. The viewer's sort and search apply to everything else ("Featured"
-  // keeps the admin's order for those too).
-  const pinned = useMemo(
-    () => items.filter((i) => i.is_pinned).sort((a, b) => a.pin_order - b.pin_order),
-    [items],
-  );
+  // Items arrive in the admin's order: pinned first, then the rest. Search only filters.
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const match = (i: Item) => !q || [i.title, i.location].some((v) => v?.toLowerCase().includes(q));
-    const rest = items.filter((i) => !i.is_pinned && match(i)).sort(SORTS[sort].fn);
-    return [...pinned.filter(match), ...rest];
-  }, [items, pinned, sort, query]);
+    return q ? items.filter((i) => [i.title, i.location].some((v) => v?.toLowerCase().includes(q))) : items;
+  }, [items, query]);
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search ${items.length} item${items.length === 1 ? "" : "s"}…`}
-            aria-label="Search items"
-            className="field pl-9"
-          />
-        </div>
-        <div
-          role="radiogroup"
-          aria-label="Sort items"
-          className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-950"
-        >
-          {(Object.keys(SORTS) as SortKey[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              role="radio"
-              aria-checked={sort === key}
-              onClick={() => setSort(key)}
-              className={`flex-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                sort === key
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-              }`}
-            >
-              {SORTS[key].label}
-            </button>
-          ))}
-        </div>
+      <div className="relative">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={`Search ${items.length} item${items.length === 1 ? "" : "s"}…`}
+          aria-label="Search items"
+          className="field pl-9"
+        />
       </div>
 
       {visible.length === 0 ? (
@@ -93,8 +46,6 @@ export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categ
       ) : (
         <ul className="space-y-2.5">
           {visible.map((item) => {
-            // Unpinned items can only be reordered while the list shows the admin's order.
-            const reorderable = item.is_pinned || (sort === "featured" && !query.trim());
             return (
               <li key={item.id}>
                 <ItemCard item={item}>
@@ -103,7 +54,7 @@ export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categ
                       target={{ kind: "item", values: item }}
                       row={{ kind: "item", id: item.id, categoryId }}
                       pinned={item.is_pinned}
-                      movable={reorderable}
+                      movable={!query.trim()}
                       {...moveBounds(items, item)}
                     />
                   )}

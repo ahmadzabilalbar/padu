@@ -2,9 +2,9 @@
 
 A shared board built with Next.js 16, Tailwind CSS v4 and Supabase.
 
-- **Visitors** (no login) can browse, search, and sort items (Newest / Oldest / A–Z / Z–A). They can't change anything.
+- **Visitors** (no login) can browse and search. They can't change anything.
 - **Admin** signs in with Google (only the `ADMIN_EMAIL` account), and is the only one who can create, edit, delete, pin and reorder categories and items.
-- Pinned items always stay on top, in the admin's order, whatever sort a visitor picks.
+- Every board shows items in the admin's order (up/down arrows); pinned items always stay on top.
 - **Sub-categories**: a category can sit inside another (one level, e.g. Makan → Mi Goreng). Its page shows its sub-categories above its own items, and each sub-category has its own items and pins.
 - **Item library**: each item is stored once and can be placed in any number of categories (pinning is per category). Editing an item updates it everywhere; removing it from a category keeps it in the library; deleting it from the library removes it everywhere.
 - Each item can have a **photo** (resized in the browser to 1600px WebP, stored in the public Supabase Storage bucket `item-images`) and a **location** (place name, address, coordinates or a Google Maps link) that opens in Google Maps, with an optional embedded map.
