@@ -7,6 +7,7 @@ import type { BoardItem } from "@/lib/types";
 import { locationLabel, mapsEmbedUrl, mapsUrl } from "@/lib/maps";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
+import { PhotoButton } from "./PhotoButton";
 
 type Item = BoardItem;
 
@@ -80,12 +81,10 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
     >
       <div className="flex items-start gap-3 sm:gap-4">
         {item.image_url && (
-          <a
-            href={item.image_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-800"
-            aria-label={`Open photo of ${item.title}`}
+          <PhotoButton
+            src={item.image_url}
+            title={item.title}
+            className="shrink-0 cursor-zoom-in overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-800"
           >
             <Image
               src={item.image_url}
@@ -95,7 +94,7 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
               sizes="(min-width: 640px) 112px, 80px"
               className="size-20 object-cover transition group-hover:scale-[1.03] sm:size-28"
             />
-          </a>
+          </PhotoButton>
         )}
         <div className="min-w-0 flex-1">
           {item.is_pinned && (

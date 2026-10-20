@@ -4,6 +4,11 @@ import { mapsUrl } from "@/lib/maps";
 import type { Category } from "@/lib/types";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
+import { PhotoButton } from "./PhotoButton";
+
+/** Photo/map icon in a card's item row. Sits above the card's stretched link. */
+const ICON_LINK =
+  "relative z-10 grid size-7 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400";
 
 type Props = {
   /** The cards to show, in order. */
@@ -69,31 +74,31 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                         ) : (
                           <span className="mx-[5px] size-1 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
                         )}
-                        <span className="truncate">{item.title}</span>
-                        {item.image_url && (
-                          <a
-                            href={item.image_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Photo"
-                            aria-label={`Photo of ${item.title}`}
-                            className="relative z-10 -my-1 shrink-0 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400"
-                          >
-                            <ImageIcon className="size-3.5" />
-                          </a>
-                        )}
-                        {item.location && (
-                          <a
-                            href={mapsUrl(item.location)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Google Maps"
-                            aria-label={`${item.title} on Google Maps`}
-                            className={`relative z-10 -my-1 shrink-0 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400 ${item.image_url ? "-ml-1.5" : ""}`}
-                          >
-                            <MapPin className="size-3.5" />
-                          </a>
-                        )}
+                        <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                        {/* Fixed slots on the right, so icons line up in columns across rows. */}
+                        <span className="-my-1 flex shrink-0 items-center">
+                          {item.image_url ? (
+                            <PhotoButton src={item.image_url} title={item.title} className={ICON_LINK}>
+                              <ImageIcon className="size-4" />
+                            </PhotoButton>
+                          ) : (
+                            <span className="size-7" aria-hidden />
+                          )}
+                          {item.location ? (
+                            <a
+                              href={mapsUrl(item.location)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Google Maps"
+                              aria-label={`${item.title} on Google Maps`}
+                              className={ICON_LINK}
+                            >
+                              <MapPin className="size-4" />
+                            </a>
+                          ) : (
+                            <span className="size-7" aria-hidden />
+                          )}
+                        </span>
                       </li>
                     ))}
                     {c.item_count > c.preview.length && (

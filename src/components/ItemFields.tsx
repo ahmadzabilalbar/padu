@@ -90,10 +90,10 @@ function PhotoField({ id, existingUrl }: { id: string; existingUrl: string | nul
       />
       {removed && !picked && existingUrl && <input type="hidden" name="removeImage" value="on" />}
       {preview ? (
-        <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div className="relative mx-auto w-full max-w-60 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
           {/* A local blob preview, so next/image can't optimise it. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={preview} alt="" className="aspect-video w-full object-cover" />
+          <img src={preview} alt="" className="aspect-square w-full object-cover" />
           <div className="absolute top-2 right-2 flex gap-1.5">
             <label htmlFor={id} className="btn cursor-pointer bg-white/90 px-3 py-1.5 text-xs text-zinc-900 shadow-sm hover:bg-white">
               Change
