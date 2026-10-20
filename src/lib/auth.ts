@@ -21,12 +21,6 @@ function safeEqual(a: string, b: string) {
   return timingSafeEqual(ha, hb);
 }
 
-export function checkPassword(input: string) {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) return false;
-  return safeEqual(input, expected);
-}
-
 export async function startAdminSession() {
   const expires = Math.floor(Date.now() / 1000) + MAX_AGE;
   const payload = `admin.${expires}`;

@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { updateTag } from "next/cache";
-import { checkPassword, endAdminSession, isAdmin, requireAdmin, startAdminSession } from "@/lib/auth";
+import { endAdminSession, isAdmin, requireAdmin } from "@/lib/auth";
 import { IMAGE_BUCKET, tags } from "@/lib/data";
 import { db } from "@/lib/supabase";
 import type { ActionState } from "@/lib/types";
@@ -244,16 +244,6 @@ export async function deleteItem(rawId: string) {
 /* ------------------------------------------------------------------ */
 /* Admin: has the last say on what sits on top                         */
 /* ------------------------------------------------------------------ */
-
-export async function login(_prev: ActionState, form: FormData): Promise<ActionState> {
-  const password = form.get("password");
-  if (typeof password !== "string" || !checkPassword(password)) {
-    await new Promise((r) => setTimeout(r, 600)); // slow down guessing
-    return { ok: false, error: "Wrong password." };
-  }
-  await startAdminSession();
-  redirect("/admin");
-}
 
 export async function logout() {
   await endAdminSession();

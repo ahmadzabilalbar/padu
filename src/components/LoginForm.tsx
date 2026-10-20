@@ -1,18 +1,13 @@
-"use client";
-
-import { useActionState } from "react";
 import { Lock } from "lucide-react";
-import { login } from "@/app/actions";
 import { FormMessage } from "./FormMessage";
 
 const ERRORS: Record<string, string> = {
   "not-admin": "That Google account isn’t the admin. Sign in with the admin’s Google account.",
   "google-cancelled": "Google sign-in was cancelled or expired. Please try again.",
-  "google-not-configured": "Google sign-in isn’t set up yet. Use the password for now.",
+  "google-not-configured": "Google sign-in isn’t set up yet.",
 };
 
 export function LoginForm({ googleEnabled, error }: { googleEnabled: boolean; error?: string }) {
-  const [state, action, pending] = useActionState(login, null);
   const googleError = error ? (ERRORS[error] ?? "Sign-in failed. Please try again.") : undefined;
 
   return (
@@ -29,30 +24,14 @@ export function LoginForm({ googleEnabled, error }: { googleEnabled: boolean; er
 
       {googleError && <FormMessage state={{ ok: false, error: googleError }} />}
 
-      {googleEnabled && (
-        <>
-          <a href="/auth/google" className="btn w-full border border-zinc-200 bg-white text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">
-            <GoogleIcon />
-            Continue with Google
-          </a>
-          <div className="flex items-center gap-3 text-xs text-zinc-400">
-            <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-            or use the password
-            <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-          </div>
-        </>
+      {googleEnabled ? (
+        <a href="/auth/google" className="btn w-full border border-zinc-200 bg-white text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">
+          <GoogleIcon />
+          Continue with Google
+        </a>
+      ) : (
+        <FormMessage state={{ ok: false, error: ERRORS["google-not-configured"] }} />
       )}
-
-      <form action={action} className="space-y-4">
-        <div>
-          <label htmlFor="password" className="label">Password</label>
-          <input id="password" name="password" type="password" required autoComplete="current-password" className="field" />
-        </div>
-        <FormMessage state={state} />
-        <button type="submit" disabled={pending} className="btn-primary w-full">
-          {pending ? "Checking…" : "Sign in"}
-        </button>
-      </form>
     </div>
   );
 }
