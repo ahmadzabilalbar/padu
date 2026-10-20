@@ -10,8 +10,6 @@ import { AdminControls } from "./AdminControls";
 
 type Item = BoardItem;
 
-const date = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" });
-
 export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categoryId: string; isAdmin: boolean }) {
   const [query, setQuery] = useState("");
 
@@ -68,16 +66,7 @@ export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categ
   );
 }
 
-function hostOf(url: string) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return null;
-  }
-}
-
 function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }) {
-  const host = item.url ? hostOf(item.url) : null;
   const [showMap, setShowMap] = useState(false);
   const embed = item.location ? mapsEmbedUrl(item.location) : null;
 
@@ -158,23 +147,6 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
               )}
             </div>
           )}
-          <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
-            {item.author && (
-              <>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.author}</span>
-                <span aria-hidden>·</span>
-              </>
-            )}
-            <time dateTime={item.added_at} suppressHydrationWarning>
-              {date.format(new Date(item.added_at))}
-            </time>
-            {host && (
-              <>
-                <span aria-hidden>·</span>
-                <span className="font-mono">{host}</span>
-              </>
-            )}
-          </p>
         </div>
         {children && <div className="-mt-1 -mr-1 shrink-0">{children}</div>}
       </div>
