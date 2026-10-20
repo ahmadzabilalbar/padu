@@ -6,9 +6,9 @@ import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
 import { PhotoButton } from "./PhotoButton";
 
-/** Photo/map icon in a card's item row. Sits above the card's stretched link. */
+/** Photo/map icon in a card's item row. */
 const ICON_LINK =
-  "relative z-10 grid size-7 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400";
+  "grid size-7 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400";
 
 type Props = {
   /** The cards to show, in order. */
@@ -49,18 +49,22 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
         const siblings = all.filter((s) => s.parent_id === c.parent_id);
         return (
           <li key={c.id} className="relative">
-            {/* The name's link stretches over the whole card; the photo/map icons sit above it. */}
+            {/* The card lists every item, so it doesn't open a page. Only the admin gets a link, to manage items. */}
             <div
-              className={`card relative flex h-full flex-col p-5 transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:hover:border-zinc-700 ${
+              className={`card flex h-full flex-col p-5 ${
                 c.is_pinned ? "border-accent-500/40 ring-1 ring-accent-500/10 dark:border-accent-500/30" : ""
               }`}
             >
               <div className={`flex items-center gap-2 ${isAdmin ? "pr-24" : ""}`}>
                 {c.is_pinned && <Pin className="size-4 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
                 <h3 className="truncate font-semibold tracking-tight">
-                  <Link href={`/c/${c.slug}`} className="after:absolute after:inset-0 after:rounded-2xl">
-                    {c.name}
-                  </Link>
+                  {isAdmin ? (
+                    <Link href={`/c/${c.slug}`} className="hover:text-accent-600 hover:underline dark:hover:text-accent-400">
+                      {c.name}
+                    </Link>
+                  ) : (
+                    c.name
+                  )}
                 </h3>
               </div>
               {parent && <p className="mt-0.5 truncate text-xs text-zinc-500">{parent.name}</p>}
@@ -101,9 +105,6 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                         </span>
                       </li>
                     ))}
-                    {c.item_count > c.preview.length && (
-                      <li className="pl-[22px] text-xs text-zinc-500">+{c.item_count - c.preview.length} more</li>
-                    )}
                   </ul>
                 ) : (
                   <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>

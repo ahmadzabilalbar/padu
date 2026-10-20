@@ -23,8 +23,6 @@ const CATEGORY_COLUMNS =
 
 const ITEM_COLUMNS = "id, title, body, url, author, image_path, location, created_at";
 
-/** Number of items shown on each category card. */
-export const PREVIEW_SIZE = 3;
 
 function toCategory({ category_items, preview, ...row }: CategoryRow): Category {
   return {
@@ -49,7 +47,7 @@ function toItem(row: ItemRow): Item {
 
 /**
  * Every category and sub-category, pinned first (admin order), then newest,
- * each with its top few items in board order and its sub-categories. One
+ * each with all its items in board order and its sub-categories. One
  * query; cached and tag-invalidated. Use topLevel() for the home page.
  */
 export async function getCategories(): Promise<Category[]> {
@@ -65,8 +63,7 @@ export async function getCategories(): Promise<Category[]> {
     .order("created_at", { ascending: false })
     .order("is_pinned", { referencedTable: "preview", ascending: false })
     .order("pin_order", { referencedTable: "preview", ascending: true })
-    .order("created_at", { referencedTable: "preview", ascending: false })
-    .limit(PREVIEW_SIZE, { referencedTable: "preview" });
+    .order("created_at", { referencedTable: "preview", ascending: false });
   if (error) throw new Error(error.message);
 
   const categories = (data as unknown as CategoryRow[]).map(toCategory);
