@@ -6,6 +6,7 @@ import { LayoutGrid, Shield } from "lucide-react";
 import { CategoryChips } from "@/components/CategoryChips";
 import { ThemeToggle, themeScript } from "@/components/ThemeToggle";
 import { getCategories, topLevel } from "@/lib/data";
+import { visibleCategories } from "@/lib/visibility";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex min-h-full flex-col font-sans">
         <header className="sticky top-0 z-30 border-b border-zinc-200/70 bg-zinc-50/70 backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/70">
-          <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:gap-5 sm:px-6">
+          <div className="flex h-14 items-center gap-3 px-4 sm:gap-5 sm:px-6">
             <Link href="/" aria-label="Changlun Best" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight">
               <span className="grid size-7 place-items-center rounded-lg bg-linear-to-br from-accent-500 to-fuchsia-500 text-white shadow-sm">
                 <LayoutGrid className="size-4" />
@@ -54,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </nav>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</main>
+        <main className="w-full flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</main>
         <footer className="py-8 text-center text-xs text-zinc-500">
           The best of Changlun, curated by me 😉
         </footer>
@@ -65,7 +66,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
 /** Main categories for the filter chips in the top bar. */
 async function CategoryNav() {
-  const all = await getCategories();
+  // Visitors' view: hidden categories never get a chip.
+  const all = visibleCategories(await getCategories());
   const chips = topLevel(all).map((main) => ({
     name: main.name,
     slug: main.slug,

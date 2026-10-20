@@ -4,6 +4,8 @@ export type Category = {
   slug: string;
   /** Set for a sub-category. Only one level deep. */
   parent_id: string | null;
+  /** Hidden from visitors. A hidden main category hides its sub-categories too. */
+  is_hidden: boolean;
   is_pinned: boolean;
   pin_order: number;
   created_at: string;

@@ -17,7 +17,7 @@ type CategoryRow = Omit<Category, "item_count" | "preview" | "subcategories"> & 
 
 
 const CATEGORY_COLUMNS =
-  "id, name, slug, parent_id, is_pinned, pin_order, created_at, category_items(count)";
+  "id, name, slug, parent_id, is_hidden, is_pinned, pin_order, created_at, category_items(count)";
 
 const ITEM_COLUMNS = "id, title, body, url, author, location, created_at";
 

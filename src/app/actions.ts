@@ -294,6 +294,17 @@ async function nextPinOrder(ref: RowRef) {
   return Math.max(0, ...rows.map((r) => r.pin_order)) + 1;
 }
 
+/** Show or hide a category from visitors. */
+export async function toggleHidden(rawId: string) {
+  await requireAdmin();
+  const id = uuid(rawId);
+  const { data, error } = await db().from("categories").select("is_hidden").eq("id", id).single();
+  if (error) throw error;
+  const { error: updateError } = await db().from("categories").update({ is_hidden: !data.is_hidden }).eq("id", id);
+  if (updateError) throw updateError;
+  updateTag(tags.categories);
+}
+
 export async function togglePin(rawRef: RowRef) {
   await requireAdmin();
   const ref = checkRef(rawRef);

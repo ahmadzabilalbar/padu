@@ -12,6 +12,8 @@ create table if not exists public.categories (
   description text check (char_length(description) <= 200),
   -- Set for a sub-category (one level deep, e.g. Makan → Mi Goreng). Deleting a parent deletes its sub-categories.
   parent_id   uuid references public.categories (id) on delete cascade check (parent_id <> id),
+  -- Hidden from visitors (with its sub-categories); the admin still sees it.
+  is_hidden   boolean not null default false,
   is_pinned   boolean not null default false,
   pin_order   integer not null default 0,
   created_at  timestamptz not null default now()

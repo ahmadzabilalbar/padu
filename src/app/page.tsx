@@ -3,6 +3,7 @@ import { CategoryForm } from "@/components/CategoryForm";
 import { CategoryGrid, GridSkeleton } from "@/components/CategoryGrid";
 import { isAdmin } from "@/lib/auth";
 import { getCategories, homeCards, topLevel } from "@/lib/data";
+import { visibleCategories } from "@/lib/visibility";
 
 export default function Home({ searchParams }: PageProps<"/">) {
   return (
@@ -15,8 +16,10 @@ export default function Home({ searchParams }: PageProps<"/">) {
 async function Categories({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
   // Reading the cookie first keeps the DB out of the build; the list itself is still served from cache.
   const admin = await isAdmin();
-  const all = await getCategories();
-  const parents = topLevel(all).map(({ id, name }) => ({ id, name }));
+  const everything = await getCategories();
+  const parents = topLevel(everything).map(({ id, name }) => ({ id, name }));
+  // The admin sees hidden categories (faded); visitors don't see them at all.
+  const all = admin ? everything : visibleCategories(everything);
 
   // ?c=<main category slug> (the chips in the top bar) shows only that category's cards.
   const { c } = await searchParams;

@@ -2,8 +2,8 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, Loader2, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
-import { deleteItem, moveLibraryItem, moveRow, removeRow, togglePin, type RowRef } from "@/app/actions";
+import { ArrowDown, ArrowUp, Eye, EyeOff, Loader2, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
+import { deleteItem, moveLibraryItem, moveRow, removeRow, toggleHidden, togglePin, type RowRef } from "@/app/actions";
 import { EditDialog, type EditTarget } from "./EditDialog";
 
 type Props = {
@@ -15,6 +15,8 @@ type Props = {
    */
   row: RowRef | null;
   pinned?: boolean;
+  /** For categories: whether it's hidden from visitors (shows the show/hide button). */
+  hidden?: boolean;
   /** Whether to show the up/down arrows (default: yes). */
   movable?: boolean;
   canMoveUp?: boolean;
@@ -23,7 +25,7 @@ type Props = {
   afterDelete?: string;
 };
 
-export function AdminControls({ target, row, pinned = false, movable = true, canMoveUp, canMoveDown, afterDelete }: Props) {
+export function AdminControls({ target, row, pinned = false, hidden, movable = true, canMoveUp, canMoveDown, afterDelete }: Props) {
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState(false);
   const closeEdit = useCallback(() => setEditing(false), []);
@@ -99,6 +101,19 @@ export function AdminControls({ target, row, pinned = false, movable = true, can
             <ArrowDown className="size-4" />
           </button>
         </>
+      )}
+      {row?.kind === "category" && hidden !== undefined && (
+        <button
+          type="button"
+          title={hidden ? "Hidden from visitors. Show it" : "Hide from visitors"}
+          aria-label={hidden ? "Show to visitors" : "Hide from visitors"}
+          aria-pressed={hidden}
+          className={`icon-btn ${hidden ? "text-amber-600 dark:text-amber-400" : ""}`}
+          disabled={pending}
+          onClick={() => run(() => toggleHidden(row.id))}
+        >
+          {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
       )}
       {row && (
         <button

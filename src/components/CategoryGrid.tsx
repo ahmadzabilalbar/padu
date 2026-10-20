@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { FolderOpen, Pin } from "lucide-react";
 import type { Category } from "@/lib/types";
+import { isHiddenIn } from "@/lib/visibility";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
 import { CardItems } from "./CardItems";
+import { HiddenTag } from "./HiddenTag";
 
 type Props = {
   /** The cards to show, in order. */
@@ -13,7 +15,7 @@ type Props = {
   /** Show the main category's name under a sub-category's name. */
   showParent?: boolean;
   isAdmin: boolean;
-  /** Full-width layout (no sidebar), so allow a third column on large screens. */
+  /** Full-width layout (no sidebar): up to 4 columns. With a sidebar, 4 only on very wide screens. */
   wide?: boolean;
   /** Top-level categories, offered as "Inside" choices when editing. */
   parents?: { id: string; name: string }[];
@@ -38,15 +40,16 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
   }
 
   return (
-    <ul className={`grid gap-3 sm:grid-cols-2 ${wide ? "lg:grid-cols-3" : ""}`}>
+    <ul className={`grid gap-3 sm:grid-cols-2 ${wide ? "lg:grid-cols-3 xl:grid-cols-4" : "xl:grid-cols-3 2xl:grid-cols-4"}`}>
       {categories.map((c) => {
         const parent = showParent && c.parent_id ? byId.get(c.parent_id) : undefined;
         const siblings = all.filter((s) => s.parent_id === c.parent_id);
+        const hidden = isHiddenIn(all, c);
         return (
           <li key={c.id} className="relative">
             {/* The card lists its items itself, so it doesn't open a page. Only the admin gets a link, to manage items. */}
             <div
-              className={`card flex h-full flex-col p-5 ${
+              className={`card flex h-full flex-col p-5 ${hidden ? "border-dashed opacity-60" : ""} ${
                 c.is_pinned ? "border-accent-500/40 ring-1 ring-accent-500/10 dark:border-accent-500/30" : ""
               }`}
             >
@@ -62,7 +65,12 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                   )}
                 </h3>
               </div>
-              {parent && <p className="mt-0.5 truncate text-xs text-zinc-500">{parent.name}</p>}
+              {(parent || hidden) && (
+                <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-zinc-500">
+                  {parent?.name}
+                  {hidden && <HiddenTag />}
+                </p>
+              )}
               <div className="mt-3 flex-1">
                 <CardItems items={c.preview} />
               </div>
@@ -77,6 +85,7 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                   }}
                   row={{ kind: "category", id: c.id }}
                   pinned={c.is_pinned}
+                  hidden={c.is_hidden}
                   {...moveBounds(siblings, c)}
                 />
               </div>
@@ -90,7 +99,7 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
 
 export function GridSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="skeleton h-36" />
       ))}

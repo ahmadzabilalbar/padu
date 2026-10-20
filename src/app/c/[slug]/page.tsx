@@ -9,6 +9,7 @@ import { ItemBoard } from "@/components/ItemBoard";
 import { ItemForm } from "@/components/ItemForm";
 import { isAdmin } from "@/lib/auth";
 import { getCategories, getCategoryBySlug, getItems, getLibrary, topLevel } from "@/lib/data";
+import { isHiddenIn } from "@/lib/visibility";
 
 export async function generateMetadata({ params }: PageProps<"/c/[slug]">) {
   const found = await getCategoryBySlug((await params).slug);
@@ -31,12 +32,14 @@ export default function CategoryPage({ params }: PageProps<"/c/[slug]">) {
 
 async function Board({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const found = await getCategoryBySlug(slug);
-  if (!found) notFound();
-  const { category, parent, children } = found;
-  const [items, admin] = await Promise.all([getItems(category.id), isAdmin()]);
+  const [found, admin, all] = await Promise.all([getCategoryBySlug(slug), isAdmin(), getCategories()]);
+  // Hidden categories (and sub-categories of hidden ones) don't exist for visitors.
+  if (!found || (!admin && isHiddenIn(all, found.category))) notFound();
+  const { category, parent } = found;
+  const children = admin ? found.children : found.children.filter((c) => !c.is_hidden);
+  const items = await getItems(category.id);
   const [library, parents] = admin
-    ? await Promise.all([getLibrary(), getCategories().then((all) => topLevel(all).map(({ id, name }) => ({ id, name })))])
+    ? await Promise.all([getLibrary(), topLevel(all).map(({ id, name }) => ({ id, name }))])
     : [[], []];
   const hasChildren = children.length > 0;
 

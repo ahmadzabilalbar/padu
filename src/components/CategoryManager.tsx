@@ -7,6 +7,7 @@ import { createCategory } from "@/app/actions";
 import type { Category } from "@/lib/types";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
+import { HiddenTag } from "./HiddenTag";
 import { FormMessage } from "./FormMessage";
 import { useFormAction } from "./useFormAction";
 
@@ -119,7 +120,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                   <ul className="ml-6 border-l border-zinc-200 pb-2 sm:ml-9 dark:border-zinc-800">
                     {shownChildren.map((child) => (
                       <li key={child.id}>
-                        <Row category={child} siblings={children} parents={parents} sub />
+                        <Row category={child} siblings={children} parents={parents} parentHidden={main.is_hidden} sub />
                       </li>
                     ))}
                     {addingTo === main.id && (
@@ -148,6 +149,7 @@ function Row({
   siblings,
   parents,
   sub,
+  parentHidden,
   expander,
   extra,
 }: {
@@ -155,14 +157,17 @@ function Row({
   siblings: Category[];
   parents: Parent[] | undefined;
   sub?: boolean;
+  /** Its main category is hidden, so visitors can't see it either. */
+  parentHidden?: boolean;
   expander?: React.ReactNode;
   extra?: React.ReactNode;
 }) {
   const subs = c.subcategories.length;
+  const hidden = c.is_hidden || parentHidden;
   return (
     <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 py-2.5 pr-2 sm:pr-3 ${sub ? "pl-4" : "pl-2"}`}>
       {expander}
-      <div className="flex min-w-0 flex-1 basis-40 items-center gap-2">
+      <div className={`flex min-w-0 flex-1 basis-40 items-center gap-2 ${hidden ? "opacity-55" : ""}`}>
         {c.is_pinned && <Pin className="size-3.5 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
         <div className="min-w-0">
           <Link
@@ -171,9 +176,12 @@ function Row({
           >
             {c.name}
           </Link>
-          <p className="truncate text-xs text-zinc-500">
-            {subs > 0 && `${subs} sub-categor${subs === 1 ? "y" : "ies"} · `}
-            {c.item_count} item{c.item_count === 1 ? "" : "s"}
+          <p className="flex items-center gap-1.5 truncate text-xs text-zinc-500">
+            <span>
+              {subs > 0 && `${subs} sub-categor${subs === 1 ? "y" : "ies"} · `}
+              {c.item_count} item{c.item_count === 1 ? "" : "s"}
+            </span>
+            {hidden && <HiddenTag />}
           </p>
         </div>
       </div>
@@ -187,6 +195,7 @@ function Row({
           }}
           row={{ kind: "category", id: c.id }}
           pinned={c.is_pinned}
+          hidden={c.is_hidden}
           {...moveBounds(siblings, c)}
         />
       </div>
