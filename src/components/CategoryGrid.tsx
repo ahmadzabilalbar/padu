@@ -84,12 +84,7 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                   !c.subcategories.length && <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
                 )}
               </div>
-              <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                  {c.subcategories.length > 0 &&
-                    `${c.subcategories.length} sub-categor${c.subcategories.length === 1 ? "y" : "ies"} · `}
-                  {c.item_count} item{c.item_count === 1 ? "" : "s"}
-                </span>
+              <div className="mt-4 flex justify-end text-zinc-500">
                 <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-zinc-900 dark:group-hover:text-zinc-100" />
               </div>
             </Link>
