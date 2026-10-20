@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { LayoutGrid, Shield } from "lucide-react";
 import { CategoryChips } from "@/components/CategoryChips";
+import { ThemeToggle, themeScript } from "@/components/ThemeToggle";
 import { getCategories, topLevel } from "@/lib/data";
 import "./globals.css";
 
@@ -24,26 +25,33 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    // The theme script adds the "dark" class before React hydrates, hence suppressHydrationWarning.
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="flex min-h-full flex-col font-sans">
         <header className="sticky top-0 z-30 border-b border-zinc-200/70 bg-zinc-50/70 backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/70">
-          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+          <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:gap-5 sm:px-6">
+            <Link href="/" aria-label="Changlun Best" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight">
               <span className="grid size-7 place-items-center rounded-lg bg-linear-to-br from-accent-500 to-fuchsia-500 text-white shadow-sm">
                 <LayoutGrid className="size-4" />
               </span>
-              Changlun Best
+              {/* Icon only on phones, so the category chips fit beside it. */}
+              <span className="hidden sm:inline">Changlun Best</span>
             </Link>
-            <nav>
+            {/* Takes the space between logo and buttons; scrolls sideways when there are many. */}
+            <div className="min-w-0 flex-1">
+              <Suspense fallback={null}>
+                <CategoryNav />
+              </Suspense>
+            </div>
+            <nav className="flex shrink-0 items-center gap-1">
+              <ThemeToggle />
               <Link href="/admin" aria-label="Admin" title="Admin" className="icon-btn size-9">
                 <Shield className="size-4" />
               </Link>
             </nav>
-          </div>
-          <div className="mx-auto max-w-6xl px-4 pb-2 sm:px-6">
-            <Suspense fallback={<div className="h-6" />}>
-              <CategoryNav />
-            </Suspense>
           </div>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</main>

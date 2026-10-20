@@ -28,7 +28,7 @@ export function CategoryChips({ categories }: { categories: ChipCategory[] }) {
     }`;
 
   return (
-    <nav aria-label="Filter by category" className="-mx-1 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
+    <nav aria-label="Filter by category" className="-mx-1 flex gap-1 overflow-x-auto px-1 mask-r-from-85% [scrollbar-width:none]">
       <Link href="/" scroll={false} aria-current={active === "" ? "page" : undefined} className={chip(active === "")}>
         All
       </Link>
