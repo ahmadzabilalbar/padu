@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ExternalLink, Inbox, Map as MapIcon, MapPin, Pin, Search } from "lucide-react";
 import type { BoardItem } from "@/lib/types";
 import { locationLabel, mapsEmbedUrl, mapsUrl } from "@/lib/maps";
+import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
 
 type Item = BoardItem;
@@ -14,6 +15,8 @@ const byNewest = (a: Item, b: Item) => b.added_at.localeCompare(a.added_at);
 const byTitle = (a: Item, b: Item) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
 
 const SORTS = {
+  // The admin's order: items arrive from the server already in it, and sort() is stable.
+  featured: { label: "Featured", fn: () => 0 },
   newest: { label: "Newest", fn: byNewest },
   oldest: { label: "Oldest", fn: (a: Item, b: Item) => -byNewest(a, b) },
   az: { label: "A–Z", fn: byTitle },
@@ -24,18 +27,19 @@ type SortKey = keyof typeof SORTS;
 const date = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" });
 
 export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categoryId: string; isAdmin: boolean }) {
-  const [sort, setSort] = useState<SortKey>("newest");
+  const [sort, setSort] = useState<SortKey>("featured");
   const [query, setQuery] = useState("");
 
   // The admin has the last say: pinned items always stay on top in the admin's
-  // order. The viewer's sort and search apply to everything else.
+  // order. The viewer's sort and search apply to everything else ("Featured"
+  // keeps the admin's order for those too).
   const pinned = useMemo(
     () => items.filter((i) => i.is_pinned).sort((a, b) => a.pin_order - b.pin_order),
     [items],
   );
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const match = (i: Item) => !q || [i.title, i.body, i.author, i.location].some((v) => v?.toLowerCase().includes(q));
+    const match = (i: Item) => !q || [i.title, i.location].some((v) => v?.toLowerCase().includes(q));
     const rest = items.filter((i) => !i.is_pinned && match(i)).sort(SORTS[sort].fn);
     return [...pinned.filter(match), ...rest];
   }, [items, pinned, sort, query]);
@@ -89,7 +93,8 @@ export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categ
       ) : (
         <ul className="space-y-2.5">
           {visible.map((item) => {
-            const idx = pinned.findIndex((p) => p.id === item.id);
+            // Unpinned items can only be reordered while the list shows the admin's order.
+            const reorderable = item.is_pinned || (sort === "featured" && !query.trim());
             return (
               <li key={item.id}>
                 <ItemCard item={item}>
@@ -98,8 +103,8 @@ export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categ
                       target={{ kind: "item", values: item }}
                       row={{ kind: "item", id: item.id, categoryId }}
                       pinned={item.is_pinned}
-                      canMoveUp={idx > 0}
-                      canMoveDown={idx >= 0 && idx < pinned.length - 1}
+                      movable={reorderable}
+                      {...moveBounds(items, item)}
                     />
                   )}
                 </ItemCard>

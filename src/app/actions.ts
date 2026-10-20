@@ -351,8 +351,7 @@ export async function togglePin(rawRef: RowRef) {
 
 /**
  * Move a row up or down among its siblings with the same pin status, then
- * renumber that group 1..n. Items only move among pins (the rest are sorted by
- * the viewer); categories can be ordered either way.
+ * renumber that group 1..n. Pinned rows always stay above unpinned ones.
  */
 export async function moveRow(rawRef: RowRef, direction: "up" | "down") {
   await requireAdmin();

@@ -15,14 +15,15 @@ type Props = {
    */
   row: RowRef | null;
   pinned?: boolean;
-  /** Categories and library items always show the arrows; board items only while pinned. */
+  /** Whether to show the up/down arrows (default: yes). */
+  movable?: boolean;
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   /** Where to go after deleting (e.g. leave a deleted category's page). */
   afterDelete?: string;
 };
 
-export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveDown, afterDelete }: Props) {
+export function AdminControls({ target, row, pinned = false, movable = true, canMoveUp, canMoveDown, afterDelete }: Props) {
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState(false);
   const closeEdit = useCallback(() => setEditing(false), []);
@@ -50,7 +51,6 @@ export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveD
     },
   }[row?.kind ?? "library"];
 
-  const movable = row?.kind === "item" ? pinned : true;
   const move = (direction: "up" | "down") =>
     run(() => (row ? moveRow(row, direction) : moveLibraryItem(target.values.id, direction)));
 
