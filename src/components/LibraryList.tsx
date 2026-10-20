@@ -18,7 +18,7 @@ export function LibraryList({ items }: { items: LibraryItem[] }) {
 
   return (
     <ul className="card divide-y divide-zinc-200/80 dark:divide-zinc-800">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <li key={item.id} className="flex items-center gap-3 p-3 sm:px-4">
           {item.image_url ? (
             <Image src={item.image_url} alt="" width={48} height={48} className="size-12 shrink-0 rounded-lg object-cover" />
@@ -49,7 +49,12 @@ export function LibraryList({ items }: { items: LibraryItem[] }) {
               )}
             </p>
           </div>
-          <AdminControls target={{ kind: "item", values: item }} row={null} />
+          <AdminControls
+            target={{ kind: "item", values: item }}
+            row={null}
+            canMoveUp={index > 0}
+            canMoveDown={index < items.length - 1}
+          />
         </li>
       ))}
     </ul>

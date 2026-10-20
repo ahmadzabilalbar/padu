@@ -26,6 +26,8 @@ create table if not exists public.items (
   author      text check (char_length(author) <= 40),
   image_path  text check (char_length(image_path) <= 200),
   location    text check (char_length(location) <= 300),
+  -- The admin's manual order for the library (lowest first).
+  sort_order  integer not null default 0,
   created_at  timestamptz not null default now()
 );
 
@@ -49,7 +51,7 @@ create index if not exists category_items_board_idx
 
 create index if not exists category_items_item_idx on public.category_items (item_id);
 
-create index if not exists items_created_idx on public.items (created_at desc);
+create index if not exists items_library_idx on public.items (sort_order asc, created_at desc);
 
 -- Row Level Security: anyone can read; nobody can write with the public key.
 alter table public.categories enable row level security;

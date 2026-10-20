@@ -3,7 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Loader2, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
-import { deleteItem, movePinned, removeRow, togglePin, type RowRef } from "@/app/actions";
+import { deleteItem, moveLibraryItem, movePinned, removeRow, togglePin, type RowRef } from "@/app/actions";
 import { EditDialog, type EditTarget } from "./EditDialog";
 
 type Props = {
@@ -15,6 +15,7 @@ type Props = {
    */
   row: RowRef | null;
   pinned?: boolean;
+  /** Pinned rows move within their pins; library items (row null) always show the arrows. */
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   /** Where to go after deleting (e.g. leave a deleted category's page). */
@@ -49,6 +50,10 @@ export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveD
     },
   }[row?.kind ?? "library"];
 
+  const movable = row ? pinned : true;
+  const move = (direction: "up" | "down") =>
+    run(() => (row ? movePinned(row, direction) : moveLibraryItem(target.values.id, direction)));
+
   const onRemove = () => {
     if (!confirm(remove.confirm)) return;
     run(async () => {
@@ -71,7 +76,7 @@ export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveD
       >
         <Pencil className="size-4" />
       </button>
-      {row && pinned && (
+      {movable && (
         <>
           <button
             type="button"
@@ -79,7 +84,7 @@ export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveD
             aria-label="Move up"
             className="icon-btn"
             disabled={pending || !canMoveUp}
-            onClick={() => run(() => movePinned(row, "up"))}
+            onClick={() => move("up")}
           >
             <ArrowUp className="size-4" />
           </button>
@@ -89,7 +94,7 @@ export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveD
             aria-label="Move down"
             className="icon-btn"
             disabled={pending || !canMoveDown}
-            onClick={() => run(() => movePinned(row, "down"))}
+            onClick={() => move("down")}
           >
             <ArrowDown className="size-4" />
           </button>

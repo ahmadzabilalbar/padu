@@ -121,7 +121,7 @@ export async function getItems(categoryId: string): Promise<BoardItem[]> {
   }));
 }
 
-/** Every stored item, newest first, with the categories each one is in. */
+/** Every stored item in the admin's manual order, with the categories each one is in. */
 export async function getLibrary(): Promise<LibraryItem[]> {
   "use cache";
   cacheLife("minutes");
@@ -130,6 +130,7 @@ export async function getLibrary(): Promise<LibraryItem[]> {
   const { data, error } = await db()
     .from("items")
     .select(`${ITEM_COLUMNS}, categories(id, name, slug)`)
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(1000);
   if (error) throw new Error(error.message);

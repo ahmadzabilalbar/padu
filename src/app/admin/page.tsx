@@ -56,7 +56,7 @@ async function Admin({ searchParams }: { searchParams: PageProps<"/admin">["sear
             <div>
               <h2 className="text-sm font-medium text-zinc-500">Item library ({library.length})</h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Every item is stored once. Add it to more categories from a category page with “From library”.
+                Every item is stored once. Use the arrows to set the order. Add an item to more categories from a category page with “From library”.
               </p>
             </div>
             <LibraryList items={library} />

@@ -137,10 +137,19 @@ export async function createItem(_prev: ActionState, form: FormData): Promise<Ac
     const categoryIds = await existingCategoryIds(requested);
     if (categoryIds.length < requested.length) throw new ValidationError("A chosen category no longer exists.");
 
+    // New items go to the top of the library.
+    const { data: first, error: orderError } = await db()
+      .from("items")
+      .select("sort_order")
+      .order("sort_order", { ascending: true })
+      .limit(1);
+    if (orderError) throw orderError;
+    const sort_order = (first?.[0]?.sort_order ?? 1) - 1;
+
     imagePath = await uploadImage(form);
     const { data, error } = await db()
       .from("items")
-      .insert({ ...fields, image_path: imagePath })
+      .insert({ ...fields, image_path: imagePath, sort_order })
       .select("id")
       .single();
     if (error) throw error;
@@ -236,6 +245,31 @@ export async function deleteItem(rawId: string) {
   if (error) throw error;
   await removeImage(data?.image_path ?? null);
   invalidateAll();
+}
+
+/** Move an item up or down in the library's manual order, then renumber 1..n. */
+export async function moveLibraryItem(rawId: string, direction: "up" | "down") {
+  await requireAdmin();
+  const id = uuid(rawId);
+  const { data, error } = await db()
+    .from("items")
+    .select("id, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  const rows = data as { id: string; sort_order: number }[];
+  const from = rows.findIndex((r) => r.id === id);
+  const to = direction === "up" ? from - 1 : from + 1;
+  if (from < 0 || to < 0 || to >= rows.length) return;
+  [rows[from], rows[to]] = [rows[to], rows[from]];
+
+  const updates = rows
+    .map((r, i) => ({ id: r.id, order: i + 1, changed: r.sort_order !== i + 1 }))
+    .filter((r) => r.changed)
+    .map((r) => db().from("items").update({ sort_order: r.order }).eq("id", r.id));
+  for (const { error: e } of await Promise.all(updates)) if (e) throw e;
+  updateTag(tags.items);
 }
 
 /* ------------------------------------------------------------------ */
