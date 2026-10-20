@@ -5,7 +5,7 @@ import { ImagePlus, MapPin, X } from "lucide-react";
 import type { Item } from "@/lib/types";
 import { mapsUrl } from "@/lib/maps";
 
-type Values = Pick<Item, "title" | "body" | "url" | "author" | "location" | "image_url">;
+type Values = Pick<Item, "title" | "url" | "location" | "image_url">;
 
 /** The item's own fields, shared by the add form and the edit dialog. */
 export function ItemFields({ id, values }: { id: string; values?: Values }) {
@@ -20,12 +20,6 @@ export function ItemFields({ id, values }: { id: string; values?: Values }) {
         <input id={`${id}-title`} name="title" required maxLength={120} defaultValue={values?.title} placeholder="What are you adding?" className="field" />
       </div>
       <PhotoField id={`${id}-image`} existingUrl={values?.image_url ?? null} />
-      <div>
-        <label htmlFor={`${id}-body`} className="label">
-          Details <span className="text-zinc-400">(optional)</span>
-        </label>
-        <textarea id={`${id}-body`} name="body" rows={3} maxLength={1000} defaultValue={values?.body ?? ""} placeholder="A few words about it" className="field resize-y" />
-      </div>
       <div>
         <div className="flex items-baseline justify-between">
           <label htmlFor={`${id}-location`} className="label">
@@ -51,19 +45,11 @@ export function ItemFields({ id, values }: { id: string; values?: Values }) {
           />
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-        <div>
-          <label htmlFor={`${id}-url`} className="label">
-            Link <span className="text-zinc-400">(optional)</span>
-          </label>
-          <input id={`${id}-url`} name="url" inputMode="url" maxLength={500} defaultValue={values?.url ?? ""} placeholder="example.com" className="field" />
-        </div>
-        <div>
-          <label htmlFor={`${id}-author`} className="label">
-            Credit <span className="text-zinc-400">(optional)</span>
-          </label>
-          <input id={`${id}-author`} name="author" maxLength={40} defaultValue={values?.author ?? ""} placeholder="e.g. Recommended by Ali" className="field" />
-        </div>
+      <div>
+        <label htmlFor={`${id}-url`} className="label">
+          Link <span className="text-zinc-400">(optional)</span>
+        </label>
+        <input id={`${id}-url`} name="url" inputMode="url" maxLength={500} defaultValue={values?.url ?? ""} placeholder="example.com" className="field" />
       </div>
     </>
   );
