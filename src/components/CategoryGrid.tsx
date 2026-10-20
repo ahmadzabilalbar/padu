@@ -46,16 +46,16 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
         const siblings = all.filter((s) => s.parent_id === c.parent_id);
         const hidden = isHiddenIn(all, c);
         return (
-          <li key={c.id} className="relative">
+          <li key={c.id}>
             {/* The card lists its items itself, so it doesn't open a page. Only the admin gets a link, to manage items. */}
             <div
               className={`card flex h-full flex-col p-5 ${hidden ? "border-dashed opacity-60" : ""} ${
                 c.is_pinned ? "border-accent-500/40 ring-1 ring-accent-500/10 dark:border-accent-500/30" : ""
               }`}
             >
-              <div className={`flex items-center gap-2 ${isAdmin ? "pr-24" : ""}`}>
+              <div className="flex items-center gap-2">
                 {c.is_pinned && <Pin className="size-4 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
-                <h3 className="truncate font-semibold tracking-tight">
+                <h3 className="min-w-0 truncate font-semibold tracking-tight">
                   {isAdmin ? (
                     <Link href={`/c/${c.slug}`} className="hover:text-accent-600 hover:underline dark:hover:text-accent-400">
                       {c.name}
@@ -64,6 +64,21 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                     c.name
                   )}
                 </h3>
+                {isAdmin && (
+                  <div className="-my-1.5 -mr-2 ml-auto shrink-0">
+                    <AdminControls
+                      target={{
+                        kind: "category",
+                        values: { id: c.id, name: c.name, parent_id: c.parent_id },
+                        parents: c.subcategories.length ? undefined : parents,
+                      }}
+                      row={{ kind: "category", id: c.id }}
+                      pinned={c.is_pinned}
+                      hidden={c.is_hidden}
+                      {...moveBounds(siblings, c)}
+                    />
+                  </div>
+                )}
               </div>
               {(parent || hidden) && (
                 <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-zinc-500">
@@ -75,21 +90,6 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                 <CardItems items={c.preview} />
               </div>
             </div>
-            {isAdmin && (
-              <div className="absolute top-3 right-3 z-10">
-                <AdminControls
-                  target={{
-                    kind: "category",
-                    values: { id: c.id, name: c.name, parent_id: c.parent_id },
-                    parents: c.subcategories.length ? undefined : parents,
-                  }}
-                  row={{ kind: "category", id: c.id }}
-                  pinned={c.is_pinned}
-                  hidden={c.is_hidden}
-                  {...moveBounds(siblings, c)}
-                />
-              </div>
-            )}
           </li>
         );
       })}

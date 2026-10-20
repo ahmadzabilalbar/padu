@@ -65,18 +65,18 @@ export function AdminControls({ target, row, pinned = false, hidden, movable = t
   };
 
   return (
-    <div className="flex items-center gap-0.5" aria-busy={pending}>
-      {pending && <Loader2 className="mr-1 size-4 animate-spin text-zinc-400" />}
+    <div className="flex items-center" aria-busy={pending}>
+      {pending && <Loader2 className="mr-1 size-3.5 animate-spin text-zinc-400" />}
       {editing && <EditDialog target={target} onClose={closeEdit} />}
       <button
         type="button"
         title="Edit"
         aria-label="Edit"
-        className="icon-btn"
+        className="icon-btn size-7"
         disabled={pending}
         onClick={() => setEditing(true)}
       >
-        <Pencil className="size-4" />
+        <Pencil className="size-3.5" />
       </button>
       {movable && (
         <>
@@ -84,21 +84,21 @@ export function AdminControls({ target, row, pinned = false, hidden, movable = t
             type="button"
             title="Move up"
             aria-label="Move up"
-            className="icon-btn"
+            className="icon-btn size-7"
             disabled={pending || !canMoveUp}
             onClick={() => move("up")}
           >
-            <ArrowUp className="size-4" />
+            <ArrowUp className="size-3.5" />
           </button>
           <button
             type="button"
             title="Move down"
             aria-label="Move down"
-            className="icon-btn"
+            className="icon-btn size-7"
             disabled={pending || !canMoveDown}
             onClick={() => move("down")}
           >
-            <ArrowDown className="size-4" />
+            <ArrowDown className="size-3.5" />
           </button>
         </>
       )}
@@ -108,11 +108,11 @@ export function AdminControls({ target, row, pinned = false, hidden, movable = t
           title={hidden ? "Hidden from visitors. Show it" : "Hide from visitors"}
           aria-label={hidden ? "Show to visitors" : "Hide from visitors"}
           aria-pressed={hidden}
-          className={`icon-btn ${hidden ? "text-amber-600 dark:text-amber-400" : ""}`}
+          className={`icon-btn size-7 ${hidden ? "text-amber-600 dark:text-amber-400" : ""}`}
           disabled={pending}
           onClick={() => run(() => toggleHidden(row.id))}
         >
-          {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          {hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
         </button>
       )}
       {row && (
@@ -120,22 +120,22 @@ export function AdminControls({ target, row, pinned = false, hidden, movable = t
           type="button"
           title={pinned ? "Unpin" : "Pin to top"}
           aria-label={pinned ? "Unpin" : "Pin to top"}
-          className={`icon-btn ${pinned ? "text-accent-600 dark:text-accent-400" : ""}`}
+          className={`icon-btn size-7 ${pinned ? "text-accent-600 dark:text-accent-400" : ""}`}
           disabled={pending}
           onClick={() => run(() => togglePin(row))}
         >
-          {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
+          {pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
         </button>
       )}
       <button
         type="button"
         title={remove.label}
         aria-label={remove.label}
-        className="icon-btn hover:bg-red-500/10! hover:text-red-600!"
+        className="icon-btn size-7 hover:bg-red-500/10! hover:text-red-600!"
         disabled={pending}
         onClick={onRemove}
       >
-        <Trash2 className="size-4" />
+        <Trash2 className="size-3.5" />
       </button>
     </div>
   );
