@@ -3,26 +3,29 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Loader2, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
-import { deleteRow, movePinned, togglePin } from "@/app/actions";
+import { deleteItem, movePinned, removeRow, togglePin, type RowRef } from "@/app/actions";
 import { EditDialog, type EditTarget } from "./EditDialog";
 
 type Props = {
-  /** The row these controls act on, with its current values for the edit form. */
+  /** The record these controls edit, with its current values for the edit form. */
   target: EditTarget;
-  pinned: boolean;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
+  /**
+   * The row to pin, reorder and remove: a category, or an item on one category's
+   * board. Null for an item in the library, where delete removes it everywhere.
+   */
+  row: RowRef | null;
+  pinned?: boolean;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
   /** Where to go after deleting (e.g. leave a deleted category's page). */
   afterDelete?: string;
 };
 
-export function AdminControls({ target, pinned, canMoveUp, canMoveDown, afterDelete }: Props) {
+export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveDown, afterDelete }: Props) {
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState(false);
   const closeEdit = useCallback(() => setEditing(false), []);
   const router = useRouter();
-  const { kind } = target;
-  const { id } = target.values;
   const name = target.kind === "item" ? target.values.title : target.values.name;
 
   const run = (fn: () => Promise<void>) =>
@@ -34,11 +37,22 @@ export function AdminControls({ target, pinned, canMoveUp, canMoveDown, afterDel
       }
     });
 
-  const remove = () => {
-    const extra = kind === "category" ? " and every item in it" : "";
-    if (!confirm(`Delete “${name}”${extra}? This can’t be undone.`)) return;
+  const remove = {
+    category: {
+      label: "Delete",
+      confirm: `Delete the category “${name}” and any sub-categories in it? Their items stay in the library. This can’t be undone.`,
+    },
+    item: { label: "Remove from this category", confirm: `Remove “${name}” from this category? It stays in the library.` },
+    library: {
+      label: "Delete everywhere",
+      confirm: `Delete “${name}” for good? It will be removed from every category. This can’t be undone.`,
+    },
+  }[row?.kind ?? "library"];
+
+  const onRemove = () => {
+    if (!confirm(remove.confirm)) return;
     run(async () => {
-      await deleteRow(kind, id);
+      await (row ? removeRow(row) : deleteItem(target.values.id));
       if (afterDelete) router.push(afterDelete);
     });
   };
@@ -57,7 +71,7 @@ export function AdminControls({ target, pinned, canMoveUp, canMoveDown, afterDel
       >
         <Pencil className="size-4" />
       </button>
-      {pinned && (
+      {row && pinned && (
         <>
           <button
             type="button"
@@ -65,7 +79,7 @@ export function AdminControls({ target, pinned, canMoveUp, canMoveDown, afterDel
             aria-label="Move up"
             className="icon-btn"
             disabled={pending || !canMoveUp}
-            onClick={() => run(() => movePinned(kind, id, "up"))}
+            onClick={() => run(() => movePinned(row, "up"))}
           >
             <ArrowUp className="size-4" />
           </button>
@@ -75,29 +89,31 @@ export function AdminControls({ target, pinned, canMoveUp, canMoveDown, afterDel
             aria-label="Move down"
             className="icon-btn"
             disabled={pending || !canMoveDown}
-            onClick={() => run(() => movePinned(kind, id, "down"))}
+            onClick={() => run(() => movePinned(row, "down"))}
           >
             <ArrowDown className="size-4" />
           </button>
         </>
       )}
+      {row && (
+        <button
+          type="button"
+          title={pinned ? "Unpin" : "Pin to top"}
+          aria-label={pinned ? "Unpin" : "Pin to top"}
+          className={`icon-btn ${pinned ? "text-accent-600 dark:text-accent-400" : ""}`}
+          disabled={pending}
+          onClick={() => run(() => togglePin(row))}
+        >
+          {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
+        </button>
+      )}
       <button
         type="button"
-        title={pinned ? "Unpin" : "Pin to top"}
-        aria-label={pinned ? "Unpin" : "Pin to top"}
-        className={`icon-btn ${pinned ? "text-accent-600 dark:text-accent-400" : ""}`}
-        disabled={pending}
-        onClick={() => run(() => togglePin(kind, id))}
-      >
-        {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
-      </button>
-      <button
-        type="button"
-        title="Delete"
-        aria-label="Delete"
+        title={remove.label}
+        aria-label={remove.label}
         className="icon-btn hover:bg-red-500/10! hover:text-red-600!"
         disabled={pending}
-        onClick={remove}
+        onClick={onRemove}
       >
         <Trash2 className="size-4" />
       </button>

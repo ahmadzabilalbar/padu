@@ -1,11 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ExternalLink, Inbox, Pin, Search } from "lucide-react";
-import type { Item } from "@/lib/types";
+import Image from "next/image";
+import { ExternalLink, Inbox, Map as MapIcon, MapPin, Pin, Search } from "lucide-react";
+import type { BoardItem } from "@/lib/types";
+import { locationLabel, mapsEmbedUrl, mapsUrl } from "@/lib/maps";
 import { AdminControls } from "./AdminControls";
 
-const byNewest = (a: Item, b: Item) => b.created_at.localeCompare(a.created_at);
+type Item = BoardItem;
+
+// "Newest" means newest on this board, so a reused item counts from when it was added here.
+const byNewest = (a: Item, b: Item) => b.added_at.localeCompare(a.added_at);
 const byTitle = (a: Item, b: Item) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
 
 const SORTS = {
@@ -18,7 +23,7 @@ type SortKey = keyof typeof SORTS;
 
 const date = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" });
 
-export function ItemBoard({ items, isAdmin }: { items: Item[]; isAdmin: boolean }) {
+export function ItemBoard({ items, categoryId, isAdmin }: { items: Item[]; categoryId: string; isAdmin: boolean }) {
   const [sort, setSort] = useState<SortKey>("newest");
   const [query, setQuery] = useState("");
 
@@ -30,7 +35,7 @@ export function ItemBoard({ items, isAdmin }: { items: Item[]; isAdmin: boolean 
   );
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const match = (i: Item) => !q || [i.title, i.body, i.author].some((v) => v?.toLowerCase().includes(q));
+    const match = (i: Item) => !q || [i.title, i.body, i.author, i.location].some((v) => v?.toLowerCase().includes(q));
     const rest = items.filter((i) => !i.is_pinned && match(i)).sort(SORTS[sort].fn);
     return [...pinned.filter(match), ...rest];
   }, [items, pinned, sort, query]);
@@ -91,6 +96,7 @@ export function ItemBoard({ items, isAdmin }: { items: Item[]; isAdmin: boolean 
                   {isAdmin && (
                     <AdminControls
                       target={{ kind: "item", values: item }}
+                      row={{ kind: "item", id: item.id, categoryId }}
                       pinned={item.is_pinned}
                       canMoveUp={idx > 0}
                       canMoveDown={idx >= 0 && idx < pinned.length - 1}
@@ -116,6 +122,8 @@ function hostOf(url: string) {
 
 function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }) {
   const host = item.url ? hostOf(item.url) : null;
+  const [showMap, setShowMap] = useState(false);
+  const embed = item.location ? mapsEmbedUrl(item.location) : null;
 
   return (
     <article
@@ -125,7 +133,25 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
           : ""
       }`}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 sm:gap-4">
+        {item.image_url && (
+          <a
+            href={item.image_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-800"
+            aria-label={`Open photo of ${item.title}`}
+          >
+            <Image
+              src={item.image_url}
+              alt=""
+              width={112}
+              height={112}
+              sizes="(min-width: 640px) 112px, 80px"
+              className="size-20 object-cover transition group-hover:scale-[1.03] sm:size-28"
+            />
+          </a>
+        )}
         <div className="min-w-0 flex-1">
           {item.is_pinned && (
             <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-accent-600 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">
@@ -152,6 +178,30 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
               {item.body}
             </p>
           )}
+          {item.location && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <a
+                href={mapsUrl(item.location)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-accent-500/10 hover:text-accent-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:text-accent-400"
+              >
+                <MapPin className="size-3.5 shrink-0" />
+                <span className="truncate">{locationLabel(item.location)}</span>
+              </a>
+              {embed && (
+                <button
+                  type="button"
+                  onClick={() => setShowMap((v) => !v)}
+                  aria-expanded={showMap}
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                >
+                  <MapIcon className="size-3.5" />
+                  {showMap ? "Hide map" : "Show map"}
+                </button>
+              )}
+            </div>
+          )}
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
             {item.author && (
               <>
@@ -159,8 +209,8 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
                 <span aria-hidden>·</span>
               </>
             )}
-            <time dateTime={item.created_at} suppressHydrationWarning>
-              {date.format(new Date(item.created_at))}
+            <time dateTime={item.added_at} suppressHydrationWarning>
+              {date.format(new Date(item.added_at))}
             </time>
             {host && (
               <>
@@ -172,6 +222,15 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
         </div>
         {children && <div className="-mt-1 -mr-1 shrink-0">{children}</div>}
       </div>
+      {showMap && embed && (
+        <iframe
+          src={embed}
+          title={`Map of ${item.location}`}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          className="mt-4 aspect-video w-full rounded-xl border border-zinc-200 dark:border-zinc-800"
+        />
+      )}
     </article>
   );
 }

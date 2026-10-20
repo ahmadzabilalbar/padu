@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { CategoryForm } from "@/components/CategoryForm";
 import { CategoryGrid, GridSkeleton } from "@/components/CategoryGrid";
 import { isAdmin } from "@/lib/auth";
-import { getCategories } from "@/lib/data";
+import { getCategories, topLevel } from "@/lib/data";
 
 export default function Home() {
   return (
@@ -15,14 +15,15 @@ export default function Home() {
 async function Categories() {
   // Reading the cookie first keeps the DB out of the build; the list itself is still served from cache.
   const admin = await isAdmin();
-  const categories = await getCategories();
+  const categories = topLevel(await getCategories());
+  const parents = categories.map(({ id, name }) => ({ id, name }));
 
   const list = (
     <section aria-labelledby="categories-heading" className="space-y-4">
       <h1 id="categories-heading" className="text-sm font-medium text-zinc-500">
         Categories
       </h1>
-      <CategoryGrid categories={categories} isAdmin={admin} wide={!admin} />
+      <CategoryGrid categories={categories} isAdmin={admin} wide={!admin} parents={parents} />
     </section>
   );
 
@@ -32,7 +33,7 @@ async function Categories() {
     <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
       {list}
       <aside className="lg:sticky lg:top-20">
-        <CategoryForm />
+        <CategoryForm parents={parents} />
       </aside>
     </div>
   );

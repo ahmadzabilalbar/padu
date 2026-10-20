@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, FolderOpen, Pin } from "lucide-react";
+import { ArrowUpRight, FolderOpen, Layers, Pin } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { AdminControls } from "./AdminControls";
 
@@ -8,10 +8,15 @@ type Props = {
   isAdmin: boolean;
   /** Full-width layout (no sidebar), so allow a third column on large screens. */
   wide?: boolean;
+  /** Top-level categories, offered as "Inside" choices when editing. */
+  parents?: { id: string; name: string }[];
+  /** Sub-category grid: shorter empty state wording. */
+  sub?: boolean;
 };
 
-export function CategoryGrid({ categories, isAdmin, wide }: Props) {
+export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: Props) {
   if (categories.length === 0) {
+    if (sub) return null;
     return (
       <div className="card flex flex-col items-center gap-2 px-6 py-16 text-center">
         <FolderOpen className="size-8 text-zinc-300 dark:text-zinc-700" />
@@ -42,6 +47,22 @@ export function CategoryGrid({ categories, isAdmin, wide }: Props) {
                 <h3 className="truncate font-semibold tracking-tight">{c.name}</h3>
               </div>
               {c.description && <p className="mt-1 line-clamp-1 text-sm text-zinc-500">{c.description}</p>}
+              {c.subcategories.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Sub-categories">
+                  {c.subcategories.slice(0, 5).map((s) => (
+                    <li
+                      key={s.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-accent-500/10 px-2 py-0.5 text-xs font-medium text-accent-700 dark:text-accent-400"
+                    >
+                      <Layers className="size-3" />
+                      {s.name}
+                    </li>
+                  ))}
+                  {c.subcategories.length > 5 && (
+                    <li className="px-1 py-0.5 text-xs text-zinc-500">+{c.subcategories.length - 5} more</li>
+                  )}
+                </ul>
+              )}
               <div className="mt-3 flex-1">
                 {c.preview.length ? (
                   <ul className="space-y-1.5 text-sm">
@@ -60,11 +81,13 @@ export function CategoryGrid({ categories, isAdmin, wide }: Props) {
                     )}
                   </ul>
                 ) : (
-                  <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
+                  !c.subcategories.length && <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
                 )}
               </div>
               <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
                 <span className="rounded-full bg-zinc-100 px-2 py-0.5 font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  {c.subcategories.length > 0 &&
+                    `${c.subcategories.length} sub-categor${c.subcategories.length === 1 ? "y" : "ies"} · `}
                   {c.item_count} item{c.item_count === 1 ? "" : "s"}
                 </span>
                 <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-zinc-900 dark:group-hover:text-zinc-100" />
@@ -73,7 +96,12 @@ export function CategoryGrid({ categories, isAdmin, wide }: Props) {
             {isAdmin && (
               <div className="absolute top-3 right-3">
                 <AdminControls
-                  target={{ kind: "category", values: { id: c.id, name: c.name, description: c.description } }}
+                  target={{
+                    kind: "category",
+                    values: { id: c.id, name: c.name, description: c.description, parent_id: c.parent_id },
+                    parents: c.subcategories.length ? undefined : parents,
+                  }}
+                  row={{ kind: "category", id: c.id }}
                   pinned={c.is_pinned}
                   canMoveUp={idx > 0}
                   canMoveDown={idx >= 0 && idx < pinned.length - 1}

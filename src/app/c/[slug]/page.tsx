@@ -1,24 +1,28 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Pin, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pin, Plus } from "lucide-react";
 import { AdminControls } from "@/components/AdminControls";
+import { CategoryForm } from "@/components/CategoryForm";
+import { CategoryGrid } from "@/components/CategoryGrid";
 import { ItemBoard } from "@/components/ItemBoard";
 import { ItemForm } from "@/components/ItemForm";
 import { isAdmin } from "@/lib/auth";
-import { getCategoryBySlug, getItems } from "@/lib/data";
+import { getCategories, getCategoryBySlug, getItems, getLibrary, topLevel } from "@/lib/data";
 
 export async function generateMetadata({ params }: PageProps<"/c/[slug]">) {
-  const category = await getCategoryBySlug((await params).slug);
-  return { title: category?.name ?? "Not found", description: category?.description ?? undefined };
+  const found = await getCategoryBySlug((await params).slug);
+  if (!found) return { title: "Not found" };
+  const { category, parent } = found;
+  return {
+    title: parent ? `${category.name} · ${parent.name}` : category.name,
+    description: category.description ?? undefined,
+  };
 }
 
 export default function CategoryPage({ params }: PageProps<"/c/[slug]">) {
   return (
     <div className="space-y-6">
-      <Link href="/" className="btn-ghost -ml-3 px-3 py-1.5">
-        <ChevronLeft className="size-4" /> All categories
-      </Link>
       <Suspense fallback={<BoardSkeleton />}>
         <Board params={params} />
       </Suspense>
@@ -28,12 +32,30 @@ export default function CategoryPage({ params }: PageProps<"/c/[slug]">) {
 
 async function Board({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
-  if (!category) notFound();
+  const found = await getCategoryBySlug(slug);
+  if (!found) notFound();
+  const { category, parent, children } = found;
   const [items, admin] = await Promise.all([getItems(category.id), isAdmin()]);
+  const [library, parents] = admin
+    ? await Promise.all([getLibrary(), getCategories().then((all) => topLevel(all).map(({ id, name }) => ({ id, name })))])
+    : [[], []];
+  const hasChildren = children.length > 0;
 
   return (
     <>
+      <nav aria-label="Breadcrumb" className="-ml-3 flex items-center gap-0.5 text-sm">
+        <Link href="/" className="btn-ghost px-3 py-1.5">
+          <ChevronLeft className="size-4" /> All categories
+        </Link>
+        {parent && (
+          <>
+            <ChevronRight className="size-4 text-zinc-400" aria-hidden />
+            <Link href={`/c/${parent.slug}`} className="btn-ghost px-3 py-1.5">
+              {parent.name}
+            </Link>
+          </>
+        )}
+      </nav>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -48,12 +70,19 @@ async function Board({ params }: { params: Promise<{ slug: string }> }) {
               <AdminControls
                 target={{
                   kind: "category",
-                  values: { id: category.id, name: category.name, description: category.description },
+                  values: {
+                    id: category.id,
+                    name: category.name,
+                    description: category.description,
+                    parent_id: category.parent_id,
+                  },
+                  parents: hasChildren ? undefined : parents,
                 }}
+                row={{ kind: "category", id: category.id }}
                 pinned={category.is_pinned}
                 canMoveUp={false}
                 canMoveDown={false}
-                afterDelete="/"
+                afterDelete={parent ? `/c/${parent.slug}` : "/"}
               />
             </div>
             <a href="#add" className="btn-accent lg:hidden">
@@ -65,14 +94,41 @@ async function Board({ params }: { params: Promise<{ slug: string }> }) {
 
       {admin ? (
         <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
-          <ItemBoard items={items} isAdmin />
-          <aside id="add" className="card scroll-mt-20 p-5 sm:p-6 lg:sticky lg:top-20">
-            <h2 className="mb-4 font-semibold tracking-tight">Add to {category.name}</h2>
-            <ItemForm categoryId={category.id} />
+          <div className="space-y-8">
+            {hasChildren && (
+              <section className="space-y-4">
+                <h2 className="text-sm font-medium text-zinc-500">Sub-categories ({children.length})</h2>
+                <CategoryGrid categories={children} isAdmin parents={parents} sub />
+              </section>
+            )}
+            <section className="space-y-4">
+              {hasChildren && <h2 className="text-sm font-medium text-zinc-500">Items in {category.name}</h2>}
+              <ItemBoard items={items} categoryId={category.id} isAdmin />
+            </section>
+          </div>
+          <aside className="space-y-6 lg:sticky lg:top-20">
+            <div id="add" className="card scroll-mt-20 p-5 sm:p-6">
+              <h2 className="mb-4 font-semibold tracking-tight">Add to {category.name}</h2>
+              <ItemForm categoryId={category.id} library={library} />
+            </div>
+            {!parent && <CategoryForm parent={{ id: category.id, name: category.name }} />}
           </aside>
         </div>
       ) : (
-        <ItemBoard items={items} isAdmin={false} />
+        <div className="space-y-8">
+          {hasChildren && (
+            <section aria-label="Sub-categories">
+              <CategoryGrid categories={children} isAdmin={false} wide sub />
+            </section>
+          )}
+          {/* A parent that only groups sub-categories needn't show an empty board. */}
+          {(items.length > 0 || !hasChildren) && (
+            <section className="space-y-4">
+              {hasChildren && <h2 className="text-sm font-medium text-zinc-500">More in {category.name}</h2>}
+              <ItemBoard items={items} categoryId={category.id} isAdmin={false} />
+            </section>
+          )}
+        </div>
       )}
     </>
   );

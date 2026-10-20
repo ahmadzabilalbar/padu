@@ -5,9 +5,10 @@ import { logout } from "@/app/actions";
 import { CategoryForm } from "@/components/CategoryForm";
 import { CategoryGrid, GridSkeleton } from "@/components/CategoryGrid";
 import { ItemForm } from "@/components/ItemForm";
+import { LibraryList } from "@/components/LibraryList";
 import { LoginForm } from "@/components/LoginForm";
 import { isAdmin } from "@/lib/auth";
-import { getCategories } from "@/lib/data";
+import { categoryOptions, getCategories, getLibrary, topLevel } from "@/lib/data";
 import { googleConfig } from "@/lib/google";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -25,7 +26,9 @@ async function Admin({ searchParams }: { searchParams: PageProps<"/admin">["sear
     const { error } = await searchParams;
     return <LoginForm googleEnabled={googleConfig() !== null} error={typeof error === "string" ? error : undefined} />;
   }
-  const categories = await getCategories();
+  const [all, library] = await Promise.all([getCategories(), getLibrary()]);
+  const categories = topLevel(all);
+  const parents = categories.map(({ id, name }) => ({ id, name }));
 
   return (
     <div className="space-y-8">
@@ -44,19 +47,26 @@ async function Admin({ searchParams }: { searchParams: PageProps<"/admin">["sear
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
-        <section className="space-y-4">
-          <h2 className="text-sm font-medium text-zinc-500">Categories ({categories.length})</h2>
-          <CategoryGrid categories={categories} isAdmin />
-        </section>
+        <div className="space-y-8">
+          <section className="space-y-4">
+            <h2 className="text-sm font-medium text-zinc-500">Categories ({categories.length})</h2>
+            <CategoryGrid categories={categories} isAdmin parents={parents} />
+          </section>
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-sm font-medium text-zinc-500">Item library ({library.length})</h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Every item is stored once. Add it to more categories from a category page with “From library”.
+              </p>
+            </div>
+            <LibraryList items={library} />
+          </section>
+        </div>
         <aside className="space-y-6 lg:sticky lg:top-20">
-          <CategoryForm />
+          <CategoryForm parents={parents} />
           <div className="card p-5 sm:p-6">
-            <h2 className="mb-4 font-semibold tracking-tight">Add an item to a category</h2>
-            {categories.length ? (
-              <ItemForm categories={categories.map(({ id, name }) => ({ id, name }))} />
-            ) : (
-              <p className="text-sm text-zinc-500">Create a category first.</p>
-            )}
+            <h2 className="mb-4 font-semibold tracking-tight">Add a new item</h2>
+            <ItemForm categories={categoryOptions(all)} />
           </div>
         </aside>
       </div>

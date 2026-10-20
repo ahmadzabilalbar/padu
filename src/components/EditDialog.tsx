@@ -5,16 +5,28 @@ import { X } from "lucide-react";
 import { updateCategory, updateItem } from "@/app/actions";
 import type { Category, Item } from "@/lib/types";
 import { FormMessage } from "./FormMessage";
+import { ItemFields } from "./ItemFields";
+import { shrinkImage } from "./shrinkImage";
 import { useFormAction } from "./useFormAction";
 
+const shrinkPhoto = (form: FormData) => shrinkImage(form, "image");
+
 export type EditTarget =
-  | { kind: "category"; values: Pick<Category, "id" | "name" | "description"> }
-  | { kind: "item"; values: Pick<Item, "id" | "title" | "body" | "url" | "author"> };
+  | {
+      kind: "category";
+      values: Pick<Category, "id" | "name" | "description" | "parent_id">;
+      /** Top-level categories it can move into. Omit for a category with sub-categories (it must stay top level). */
+      parents?: { id: string; name: string }[];
+    }
+  | { kind: "item"; values: Pick<Item, "id" | "title" | "body" | "url" | "author" | "location" | "image_url"> };
 
 /** Modal edit form. Mounted only while open, so it always starts from the current values. */
 export function EditDialog({ target, onClose }: { target: EditTarget; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { state, pending, onSubmit } = useFormAction(target.kind === "item" ? updateItem : updateCategory);
+  const { state, pending, onSubmit } = useFormAction(
+    target.kind === "item" ? updateItem : updateCategory,
+    target.kind === "item" ? shrinkPhoto : undefined,
+  );
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -31,7 +43,7 @@ export function EditDialog({ target, onClose }: { target: EditTarget; onClose: (
       ref={dialogRef}
       onClose={onClose}
       onClick={(e) => e.target === dialogRef.current && onClose()}
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-2xl backdrop:bg-zinc-950/60 backdrop:backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+      className="m-auto w-[calc(100%-2rem)] max-h-[calc(100dvh-2rem)] max-w-md rounded-2xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-2xl backdrop:bg-zinc-950/60 backdrop:backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
     >
       <form onSubmit={onSubmit} className="space-y-4 p-5 sm:p-6">
         <div className="flex items-center justify-between">
@@ -50,21 +62,27 @@ export function EditDialog({ target, onClose }: { target: EditTarget; onClose: (
             <Field label="Description" optional>
               <input name="description" maxLength={200} defaultValue={target.values.description ?? ""} className="field" />
             </Field>
+            {target.parents ? (
+              <Field label="Inside">
+                <select name="parentId" defaultValue={target.values.parent_id ?? ""} className="field">
+                  <option value="">Nothing (a main category)</option>
+                  {target.parents
+                    .filter((p) => p.id !== v.id)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                </select>
+              </Field>
+            ) : (
+              <p className="text-xs text-zinc-500">It has sub-categories, so it stays a main category.</p>
+            )}
           </>
         ) : (
           <>
-            <Field label="Title">
-              <input name="title" required maxLength={120} defaultValue={target.values.title} className="field" />
-            </Field>
-            <Field label="Details" optional>
-              <textarea name="body" rows={4} maxLength={1000} defaultValue={target.values.body ?? ""} className="field resize-y" />
-            </Field>
-            <Field label="Link" optional>
-              <input name="url" inputMode="url" maxLength={500} defaultValue={target.values.url ?? ""} className="field" />
-            </Field>
-            <Field label="Credit" optional>
-              <input name="author" maxLength={40} defaultValue={target.values.author ?? ""} className="field" />
-            </Field>
+            <p className="-mt-1 text-xs text-zinc-500">Changes show everywhere this item is used.</p>
+            <ItemFields id="edit" values={target.values} />
           </>
         )}
 
