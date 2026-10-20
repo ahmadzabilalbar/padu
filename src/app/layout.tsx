@@ -56,7 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</main>
         <footer className="py-8 text-center text-xs text-zinc-500">
-          The best of Changlun, curated by the admin.
+          The best of Changlun, curated by me ;)
         </footer>
       </body>
     </html>
