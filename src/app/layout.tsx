@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import Link from "next/link";
 import { LayoutGrid, Shield } from "lucide-react";
+import { CategoryChips } from "@/components/CategoryChips";
+import { getCategories, topLevel } from "@/lib/data";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -37,6 +40,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Link>
             </nav>
           </div>
+          <div className="mx-auto max-w-6xl px-4 pb-2 sm:px-6">
+            <Suspense fallback={<div className="h-6" />}>
+              <CategoryNav />
+            </Suspense>
+          </div>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</main>
         <footer className="py-8 text-center text-xs text-zinc-500">
@@ -45,4 +53,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </body>
     </html>
   );
+}
+
+/** Main categories for the filter chips in the top bar. */
+async function CategoryNav() {
+  const all = await getCategories();
+  const chips = topLevel(all).map((main) => ({
+    name: main.name,
+    slug: main.slug,
+    subSlugs: main.subcategories.map((s) => s.slug),
+  }));
+  return chips.length ? <CategoryChips categories={chips} /> : null;
 }
