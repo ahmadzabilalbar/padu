@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, FolderOpen, Layers, Pin } from "lucide-react";
+import { FolderOpen, Layers, Pin } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { AdminControls } from "./AdminControls";
 
@@ -83,9 +83,6 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                 ) : (
                   !c.subcategories.length && <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
                 )}
-              </div>
-              <div className="mt-4 flex justify-end text-zinc-500">
-                <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-zinc-900 dark:group-hover:text-zinc-100" />
               </div>
             </Link>
             {isAdmin && (
