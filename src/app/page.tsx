@@ -19,8 +19,8 @@ async function Categories() {
   const parents = categories.map(({ id, name }) => ({ id, name }));
 
   const list = (
-    <section aria-labelledby="categories-heading" className="space-y-4">
-      <h1 id="categories-heading" className="text-sm font-medium text-zinc-500">
+    <section aria-labelledby="categories-heading">
+      <h1 id="categories-heading" className="sr-only">
         Categories
       </h1>
       <CategoryGrid categories={categories} isAdmin={admin} wide={!admin} parents={parents} />
