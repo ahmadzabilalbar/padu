@@ -1,13 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { ExternalLink, Inbox, Map as MapIcon, MapPin, Pin, Search } from "lucide-react";
 import type { BoardItem } from "@/lib/types";
 import { locationLabel, mapsEmbedUrl, mapsUrl } from "@/lib/maps";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
-import { PhotoButton } from "./PhotoButton";
 
 type Item = BoardItem;
 
@@ -80,22 +78,6 @@ function ItemCard({ item, children }: { item: Item; children?: React.ReactNode }
       }`}
     >
       <div className="flex items-start gap-3 sm:gap-4">
-        {item.image_url && (
-          <PhotoButton
-            src={item.image_url}
-            title={item.title}
-            className="shrink-0 cursor-zoom-in overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-800"
-          >
-            <Image
-              src={item.image_url}
-              alt=""
-              width={112}
-              height={112}
-              sizes="(min-width: 640px) 112px, 80px"
-              className="size-20 object-cover transition group-hover:scale-[1.03] sm:size-28"
-            />
-          </PhotoButton>
-        )}
         <div className="min-w-0 flex-1">
           {item.is_pinned && (
             <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-accent-600 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">

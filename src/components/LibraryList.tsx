@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Library, MapPin } from "lucide-react";
 import type { LibraryItem } from "@/lib/types";
@@ -20,11 +19,6 @@ export function LibraryList({ items }: { items: LibraryItem[] }) {
     <ul className="card divide-y divide-zinc-200/80 dark:divide-zinc-800">
       {items.map((item, index) => (
         <li key={item.id} className="flex items-center gap-3 p-3 sm:px-4">
-          {item.image_url ? (
-            <Image src={item.image_url} alt="" width={48} height={48} className="size-12 shrink-0 rounded-lg object-cover" />
-          ) : (
-            <span className="size-12 shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800" aria-hidden />
-          )}
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium">{item.title}</p>
             <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-zinc-500">

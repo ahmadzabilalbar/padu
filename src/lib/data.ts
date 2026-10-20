@@ -9,19 +9,17 @@ export const tags = {
   items: "items",
 };
 
-export const IMAGE_BUCKET = "item-images";
 
 type CategoryRow = Omit<Category, "item_count" | "preview" | "subcategories"> & {
   category_items: { count: number }[];
-  preview?: { is_pinned: boolean; item: Pick<ItemRow, "id" | "title" | "image_path" | "location"> | null }[];
+  preview?: { is_pinned: boolean; item: Pick<Item, "id" | "title" | "location"> | null }[];
 };
 
-type ItemRow = Omit<Item, "image_url">;
 
 const CATEGORY_COLUMNS =
   "id, name, slug, parent_id, is_pinned, pin_order, created_at, category_items(count)";
 
-const ITEM_COLUMNS = "id, title, body, url, author, image_path, location, created_at";
+const ITEM_COLUMNS = "id, title, body, url, author, location, created_at";
 
 
 function toCategory({ category_items, preview, ...row }: CategoryRow): Category {
@@ -29,21 +27,11 @@ function toCategory({ category_items, preview, ...row }: CategoryRow): Category 
     ...row,
     subcategories: [],
     item_count: category_items?.[0]?.count ?? 0,
-    preview: (preview ?? []).flatMap(({ item, is_pinned }) => {
-      if (!item) return [];
-      const { image_path, ...rest } = item;
-      return [{ ...rest, image_url: imageUrl(image_path), is_pinned }];
-    }),
+    preview: (preview ?? []).flatMap(({ item, is_pinned }) => (item ? [{ ...item, is_pinned }] : [])),
   };
 }
 
-function imageUrl(path: string | null) {
-  return path ? db().storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl : null;
-}
 
-function toItem(row: ItemRow): Item {
-  return { ...row, image_url: imageUrl(row.image_path) };
-}
 
 /**
  * Every category and sub-category, pinned first (admin order), then newest,
@@ -57,7 +45,7 @@ export async function getCategories(): Promise<Category[]> {
 
   const { data, error } = await db()
     .from("categories")
-    .select(`${CATEGORY_COLUMNS}, preview:category_items(is_pinned, item:items(id, title, image_path, location))`)
+    .select(`${CATEGORY_COLUMNS}, preview:category_items(is_pinned, item:items(id, title, location))`)
     .order("is_pinned", { ascending: false })
     .order("pin_order", { ascending: true })
     .order("created_at", { ascending: false })
@@ -127,9 +115,9 @@ export async function getItems(categoryId: string): Promise<BoardItem[]> {
     .limit(500);
   if (error) throw new Error(error.message);
 
-  type Row = Pick<BoardItem, "category_id" | "is_pinned" | "pin_order"> & { created_at: string; item: ItemRow };
+  type Row = Pick<BoardItem, "category_id" | "is_pinned" | "pin_order"> & { created_at: string; item: Item };
   return (data as unknown as Row[]).map(({ item, created_at, ...placement }) => ({
-    ...toItem(item),
+    ...item,
     ...placement,
     added_at: created_at,
   }));
@@ -149,6 +137,5 @@ export async function getLibrary(): Promise<LibraryItem[]> {
     .limit(1000);
   if (error) throw new Error(error.message);
 
-  type Row = ItemRow & { categories: LibraryItem["categories"] };
-  return (data as unknown as Row[]).map(({ categories, ...row }) => ({ ...toItem(row), categories }));
+  return data as unknown as LibraryItem[];
 }

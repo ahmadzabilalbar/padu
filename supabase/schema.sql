@@ -24,7 +24,6 @@ create table if not exists public.items (
   body        text check (char_length(body) <= 1000),
   url         text check (char_length(url) <= 500),
   author      text check (char_length(author) <= 40),
-  image_path  text check (char_length(image_path) <= 200),
   location    text check (char_length(location) <= 300),
   -- The admin's manual order for the library (lowest first).
   sort_order  integer not null default 0,
@@ -66,8 +65,3 @@ create policy "Public read items" on public.items for select using (true);
 
 drop policy if exists "Public read category items" on public.category_items;
 create policy "Public read category items" on public.category_items for select using (true);
-
--- Item photos. Public to read; only the server (secret key) uploads.
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('item-images', 'item-images', true, 5242880, array['image/webp', 'image/jpeg', 'image/png', 'image/gif'])
-on conflict (id) do nothing;

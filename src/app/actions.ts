@@ -1,13 +1,12 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { updateTag } from "next/cache";
 import { endAdminSession, isAdmin, requireAdmin } from "@/lib/auth";
-import { IMAGE_BUCKET, tags } from "@/lib/data";
+import { tags } from "@/lib/data";
 import { db } from "@/lib/supabase";
 import type { ActionState } from "@/lib/types";
-import { image, location, slugify, text, uuid, ValidationError } from "@/lib/validate";
+import { location, slugify, text, uuid, ValidationError } from "@/lib/validate";
 
 /** A category, or an item as placed in one category. */
 export type RowRef = { kind: "category"; id: string } | { kind: "item"; id: string; categoryId: string };
@@ -66,24 +65,6 @@ function itemFields(form: FormData) {
   };
 }
 
-/** Upload the form's photo (if any) and return its storage path. */
-async function uploadImage(form: FormData): Promise<string | null> {
-  const photo = image(form, "image");
-  if (!photo) return null;
-  const path = `${randomUUID()}.${photo.ext}`;
-  const { error } = await db()
-    .storage.from(IMAGE_BUCKET)
-    .upload(path, photo.file, { contentType: photo.file.type, cacheControl: "31536000" });
-  if (error) throw error;
-  return path;
-}
-
-async function removeImage(path: string | null) {
-  if (!path) return;
-  const { error } = await db().storage.from(IMAGE_BUCKET).remove([path]);
-  if (error) console.error("Could not remove image", path, error); // an orphaned file is harmless
-}
-
 async function existingCategoryIds(ids: string[]) {
   if (!ids.length) return [];
   const { data, error } = await db().from("categories").select("id").in("id", ids);
@@ -132,7 +113,6 @@ export async function createCategory(_prev: ActionState, form: FormData): Promis
 
 /** Save a new item to the library and place it in the chosen categories (none is fine). */
 export async function createItem(_prev: ActionState, form: FormData): Promise<ActionState> {
-  let imagePath: string | null = null;
   try {
     if (!(await isAdmin())) return NOT_ADMIN;
     const fields = itemFields(form);
@@ -149,10 +129,9 @@ export async function createItem(_prev: ActionState, form: FormData): Promise<Ac
     if (orderError) throw orderError;
     const sort_order = (first?.[0]?.sort_order ?? 1) - 1;
 
-    imagePath = await uploadImage(form);
     const { data, error } = await db()
       .from("items")
-      .insert({ ...fields, image_path: imagePath, sort_order })
+      .insert({ ...fields, sort_order })
       .select("id")
       .single();
     if (error) throw error;
@@ -164,7 +143,6 @@ export async function createItem(_prev: ActionState, form: FormData): Promise<Ac
     const where = categoryIds.length ? "Added to the board" : "Saved to the library";
     return { ok: true, message: pin && categoryIds.length ? `${where} and pinned to the top.` : `${where}.` };
   } catch (err) {
-    await removeImage(imagePath);
     return fail(err);
   }
 }
@@ -214,28 +192,14 @@ export async function updateCategory(_prev: ActionState, form: FormData): Promis
 
 /** Edit a library item. The change shows in every category it's in. */
 export async function updateItem(_prev: ActionState, form: FormData): Promise<ActionState> {
-  let newImage: string | null = null;
   try {
     if (!(await isAdmin())) return NOT_ADMIN;
     const id = uuid(form.get("id"));
-    const fields = itemFields(form);
-
-    const { data: current, error: readError } = await db().from("items").select("image_path").eq("id", id).single();
-    if (readError) throw readError;
-
-    newImage = await uploadImage(form);
-    const dropImage = newImage !== null || form.get("removeImage") === "on";
-    const { error } = await db()
-      .from("items")
-      .update({ ...fields, ...(dropImage ? { image_path: newImage } : {}) })
-      .eq("id", id);
+    const { error } = await db().from("items").update(itemFields(form)).eq("id", id);
     if (error) throw error;
-    if (dropImage) await removeImage(current.image_path);
-
     invalidateAll(); // categories too: card previews show item titles
     return { ok: true, message: "Saved." };
   } catch (err) {
-    await removeImage(newImage);
     return fail(err);
   }
 }
@@ -244,9 +208,8 @@ export async function updateItem(_prev: ActionState, form: FormData): Promise<Ac
 export async function deleteItem(rawId: string) {
   await requireAdmin();
   const id = uuid(rawId);
-  const { data, error } = await db().from("items").delete().eq("id", id).select("image_path").maybeSingle();
+  const { error } = await db().from("items").delete().eq("id", id);
   if (error) throw error;
-  await removeImage(data?.image_path ?? null);
   invalidateAll();
 }
 

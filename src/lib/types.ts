@@ -11,7 +11,7 @@ export type Category = {
   /** Sub-categories in board order (empty for a sub-category). */
   subcategories: Pick<Category, "id" | "name" | "slug">[];
   /** All its items in board order, shown on its card (only filled on the category list). */
-  preview: (Pick<Item, "id" | "title" | "image_url" | "location"> & { is_pinned: boolean })[];
+  preview: (Pick<Item, "id" | "title" | "location"> & { is_pinned: boolean })[];
 };
 
 /** An item in the library. The same item can sit in several categories. */
@@ -21,9 +21,6 @@ export type Item = {
   body: string | null;
   url: string | null;
   author: string | null;
-  image_path: string | null;
-  /** Public URL of the photo, derived from image_path. */
-  image_url: string | null;
   /** Place name, address, coordinates or a Google Maps link. */
   location: string | null;
   created_at: string;

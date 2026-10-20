@@ -6,10 +6,8 @@ import { updateCategory, updateItem } from "@/app/actions";
 import type { Category, Item } from "@/lib/types";
 import { FormMessage } from "./FormMessage";
 import { ItemFields } from "./ItemFields";
-import { shrinkImage } from "./shrinkImage";
 import { useFormAction } from "./useFormAction";
 
-const shrinkPhoto = (form: FormData) => shrinkImage(form, "image");
 
 export type EditTarget =
   | {
@@ -18,15 +16,12 @@ export type EditTarget =
       /** Top-level categories it can move into. Omit for a category with sub-categories (it must stay top level). */
       parents?: { id: string; name: string }[];
     }
-  | { kind: "item"; values: Pick<Item, "id" | "title" | "body" | "url" | "author" | "location" | "image_url"> };
+  | { kind: "item"; values: Pick<Item, "id" | "title" | "location"> };
 
 /** Modal edit form. Mounted only while open, so it always starts from the current values. */
 export function EditDialog({ target, onClose }: { target: EditTarget; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { state, pending, onSubmit } = useFormAction(
-    target.kind === "item" ? updateItem : updateCategory,
-    target.kind === "item" ? shrinkPhoto : undefined,
-  );
+  const { state, pending, onSubmit } = useFormAction(target.kind === "item" ? updateItem : updateCategory);
 
   useEffect(() => {
     dialogRef.current?.showModal();

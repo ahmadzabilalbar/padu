@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { FolderOpen, Image as ImageIcon, MapPin, Pin } from "lucide-react";
+import { FolderOpen, MapPin, Pin } from "lucide-react";
 import { mapsUrl } from "@/lib/maps";
 import type { Category } from "@/lib/types";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
-import { PhotoButton } from "./PhotoButton";
 
 /** Gold, silver and bronze for the top three items on each card (the admin's order). */
 const MEDALS = [
@@ -13,7 +12,7 @@ const MEDALS = [
   { label: "3rd best", className: "bg-linear-to-br from-orange-300 to-orange-500 text-orange-950 ring-orange-600/40" },
 ];
 
-/** Photo/map icon in a card's item row. */
+/** Map icon in a card's item row. */
 const ICON_LINK =
   "grid size-7 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400";
 
@@ -98,15 +97,8 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                         <span className={`min-w-0 flex-1 truncate ${rank === 0 ? "font-medium text-zinc-900 dark:text-zinc-100" : ""}`}>
                           {item.title}
                         </span>
-                        {/* Fixed slots on the right, so icons line up in columns across rows. */}
+                        {/* Fixed slot on the right, so the icons line up across rows. */}
                         <span className="-my-1 flex shrink-0 items-center">
-                          {item.image_url ? (
-                            <PhotoButton src={item.image_url} title={item.title} className={ICON_LINK}>
-                              <ImageIcon className="size-4" />
-                            </PhotoButton>
-                          ) : (
-                            <span className="size-7" aria-hidden />
-                          )}
                           {item.location ? (
                             <a
                               href={mapsUrl(item.location)}

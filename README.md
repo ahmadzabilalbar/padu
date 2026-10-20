@@ -7,13 +7,13 @@ A shared board built with Next.js 16, Tailwind CSS v4 and Supabase.
 - Every board shows items in the admin's order (up/down arrows); pinned items always stay on top.
 - **Sub-categories**: a category can sit inside another (one level, e.g. Makan → Mi Goreng). Its page shows its sub-categories above its own items, and each sub-category has its own items and pins.
 - **Item library**: each item is stored once and can be placed in any number of categories (pinning is per category). Editing an item updates it everywhere; removing it from a category keeps it in the library; deleting it from the library removes it everywhere.
-- Each item can have a **photo** (resized in the browser to 1600px WebP, stored in the public Supabase Storage bucket `item-images`) and a **location** (place name, address, coordinates or a Google Maps link) that opens in Google Maps, with an optional embedded map.
+- Each item can have a **location** (place name, address, coordinates or a Google Maps link) that opens in Google Maps, with an optional embedded map.
 
 ## How it works
 
 | Piece | Where |
 | --- | --- |
-| DB schema + indexes + RLS + photo bucket | [supabase/schema.sql](supabase/schema.sql) |
+| DB schema + indexes + RLS | [supabase/schema.sql](supabase/schema.sql) |
 | Upgrade an older database (item library + sub-categories) | [supabase/migrate-item-library.sql](supabase/migrate-item-library.sql) |
 | Cached reads (`use cache` + `cacheTag`) | [src/lib/data.ts](src/lib/data.ts) |
 | All writes (server actions, validated) | [src/app/actions.ts](src/app/actions.ts) |
@@ -21,7 +21,7 @@ A shared board built with Next.js 16, Tailwind CSS v4 and Supabase.
 
 Reads are cached by Next.js and invalidated with `updateTag` after each write, so pages are served from cache and the database is only hit when something changes. Indexes match the board order exactly (`pinned desc, pin_order, created_at desc`).
 
-The browser never talks to Supabase except to load public photos. Writes (and photo uploads) go through server actions using the Supabase secret key, and RLS allows public reads only.
+The browser never talks to Supabase. Writes go through server actions using the Supabase secret key, and RLS allows public reads only.
 
 ## Setup
 

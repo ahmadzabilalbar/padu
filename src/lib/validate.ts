@@ -20,24 +20,6 @@ export function location(form: FormData, key: string): string | null {
   return value;
 }
 
-const IMAGE_TYPES: Record<string, string> = {
-  "image/webp": "webp",
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-};
-export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-
-/** An uploaded photo, or null when the field was left empty. Returns the file and its extension. */
-export function image(form: FormData, key: string): { file: File; ext: string } | null {
-  const file = form.get(key);
-  if (!(file instanceof File) || file.size === 0) return null;
-  const ext = IMAGE_TYPES[file.type];
-  if (!ext) throw new ValidationError("Photo must be a JPEG, PNG, WebP or GIF image.");
-  if (file.size > MAX_IMAGE_BYTES) throw new ValidationError("Photo must be 4 MB or smaller.");
-  return { file, ext };
-}
-
 export function uuid(value: unknown): string {
   if (typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value)) return value;
   throw new ValidationError("Invalid id.");

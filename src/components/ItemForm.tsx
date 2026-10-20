@@ -1,16 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { Library, MapPin, Pin, Plus, Search } from "lucide-react";
 import { addExistingItem, createItem } from "@/app/actions";
 import type { LibraryItem } from "@/lib/types";
 import { FormMessage } from "./FormMessage";
 import { ItemFields } from "./ItemFields";
-import { shrinkImage } from "./shrinkImage";
 import { useFormAction } from "./useFormAction";
-
-const shrinkPhoto = (form: FormData) => shrinkImage(form, "image");
 
 type Props =
   /** Board page: add to this category, either a new item or one from the library. */
@@ -58,7 +54,7 @@ export function ItemForm(props: Props) {
 }
 
 function NewItemForm({ categoryId, categories }: { categoryId?: string; categories?: { id: string; name: string }[] }) {
-  const { state, pending, formRef, onSubmit } = useFormAction(createItem, shrinkPhoto);
+  const { state, pending, formRef, onSubmit } = useFormAction(createItem);
 
   return (
     <form ref={formRef} onSubmit={onSubmit} className="relative space-y-4">
@@ -135,11 +131,6 @@ function LibraryPicker({ categoryId, library }: { categoryId: string; library: L
               className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-zinc-100 has-checked:bg-accent-500/10 has-checked:ring-1 has-checked:ring-accent-500/40 dark:hover:bg-zinc-800"
             >
               <input type="radio" name="itemId" value={item.id} required className="sr-only" />
-              {item.image_url ? (
-                <Image src={item.image_url} alt="" width={40} height={40} className="size-10 shrink-0 rounded-md object-cover" />
-              ) : (
-                <span className="size-10 shrink-0 rounded-md bg-zinc-100 dark:bg-zinc-800" aria-hidden />
-              )}
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{item.title}</span>
                 <span className="flex items-center gap-1 truncate text-xs text-zinc-500">
