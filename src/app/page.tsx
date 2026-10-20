@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { CategoryForm } from "@/components/CategoryForm";
 import { CategoryGrid, GridSkeleton } from "@/components/CategoryGrid";
 import { isAdmin } from "@/lib/auth";
 import { getCategories, homeCards, topLevel } from "@/lib/data";
@@ -26,23 +25,13 @@ async function Categories({ searchParams }: { searchParams: PageProps<"/">["sear
   const main = topLevel(all).find((m) => m.slug === c);
   const cards = homeCards(all).filter((card) => !main || card.id === main.id || card.parent_id === main.id);
 
-  const list = (
+  // New categories are added in Admin → Categories, so the admin gets the same full-width grid.
+  return (
     <section aria-labelledby="categories-heading">
       <h1 id="categories-heading" className="sr-only">
         Categories
       </h1>
-      <CategoryGrid categories={cards} all={all} showParent isAdmin={admin} wide={!admin} parents={parents} />
+      <CategoryGrid categories={cards} all={all} showParent isAdmin={admin} wide parents={parents} />
     </section>
-  );
-
-  if (!admin) return list;
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
-      {list}
-      <aside className="lg:sticky lg:top-20">
-        <CategoryForm parents={parents} />
-      </aside>
-    </div>
   );
 }
