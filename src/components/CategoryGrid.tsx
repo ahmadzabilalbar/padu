@@ -1,20 +1,9 @@
 import Link from "next/link";
-import { FolderOpen, MapPin, Pin } from "lucide-react";
-import { mapsUrl } from "@/lib/maps";
+import { FolderOpen, Pin } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
-
-/** Gold, silver and bronze for the top three items on each card (the admin's order). */
-const MEDALS = [
-  { label: "Best", className: "bg-linear-to-br from-amber-200 to-amber-400 text-amber-900 ring-amber-500/40" },
-  { label: "2nd best", className: "bg-linear-to-br from-zinc-100 to-zinc-300 text-zinc-700 ring-zinc-400/50" },
-  { label: "3rd best", className: "bg-linear-to-br from-orange-300 to-orange-500 text-orange-950 ring-orange-600/40" },
-];
-
-/** Map icon in a card's item row. */
-const ICON_LINK =
-  "grid size-7 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400";
+import { CardItems } from "./CardItems";
 
 type Props = {
   /** The cards to show, in order. */
@@ -55,7 +44,7 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
         const siblings = all.filter((s) => s.parent_id === c.parent_id);
         return (
           <li key={c.id} className="relative">
-            {/* The card lists every item, so it doesn't open a page. Only the admin gets a link, to manage items. */}
+            {/* The card lists its items itself, so it doesn't open a page. Only the admin gets a link, to manage items. */}
             <div
               className={`card flex h-full flex-col p-5 ${
                 c.is_pinned ? "border-accent-500/40 ring-1 ring-accent-500/10 dark:border-accent-500/30" : ""
@@ -75,51 +64,7 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
               </div>
               {parent && <p className="mt-0.5 truncate text-xs text-zinc-500">{parent.name}</p>}
               <div className="mt-3 flex-1">
-                {c.preview.length ? (
-                  <ul className="space-y-1.5 text-sm">
-                    {c.preview.map((item, rank) => (
-                      <li key={item.id} className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                        <span className="grid w-5 shrink-0 place-items-center">
-                          {rank < MEDALS.length ? (
-                            <span
-                              title={MEDALS[rank].label}
-                              aria-label={MEDALS[rank].label}
-                              className={`grid size-5 place-items-center rounded-full text-[10px] font-bold shadow-sm ring-1 ring-inset ${MEDALS[rank].className}`}
-                            >
-                              {rank + 1}
-                            </span>
-                          ) : item.is_pinned ? (
-                            <Pin className="size-3.5 text-accent-600 dark:text-accent-400" aria-label="Pinned" />
-                          ) : (
-                            <span className="size-1 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
-                          )}
-                        </span>
-                        <span className={`min-w-0 flex-1 truncate ${rank === 0 ? "font-medium text-zinc-900 dark:text-zinc-100" : ""}`}>
-                          {item.title}
-                        </span>
-                        {/* Fixed slot on the right, so the icons line up across rows. */}
-                        <span className="-my-1 flex shrink-0 items-center">
-                          {item.location ? (
-                            <a
-                              href={mapsUrl(item.location)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="Google Maps"
-                              aria-label={`${item.title} on Google Maps`}
-                              className={ICON_LINK}
-                            >
-                              <MapPin className="size-4" />
-                            </a>
-                          ) : (
-                            <span className="size-7" aria-hidden />
-                          )}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
-                )}
+                <CardItems items={c.preview} />
               </div>
             </div>
             {isAdmin && (
