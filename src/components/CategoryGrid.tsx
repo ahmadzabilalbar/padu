@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FolderOpen, Layers, Pin } from "lucide-react";
 import type { Category } from "@/lib/types";
+import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
 
 type Props = {
@@ -28,12 +29,9 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
     );
   }
 
-  const pinned = categories.filter((c) => c.is_pinned);
-
   return (
     <ul className={`grid gap-3 sm:grid-cols-2 ${wide ? "lg:grid-cols-3" : ""}`}>
       {categories.map((c) => {
-        const idx = pinned.findIndex((p) => p.id === c.id);
         return (
           <li key={c.id} className="relative">
             <Link
@@ -95,8 +93,7 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                   }}
                   row={{ kind: "category", id: c.id }}
                   pinned={c.is_pinned}
-                  canMoveUp={idx > 0}
-                  canMoveDown={idx >= 0 && idx < pinned.length - 1}
+                  {...moveBounds(categories, c)}
                 />
               </div>
             )}

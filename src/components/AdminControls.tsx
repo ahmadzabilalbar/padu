@@ -3,7 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Loader2, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
-import { deleteItem, moveLibraryItem, movePinned, removeRow, togglePin, type RowRef } from "@/app/actions";
+import { deleteItem, moveLibraryItem, moveRow, removeRow, togglePin, type RowRef } from "@/app/actions";
 import { EditDialog, type EditTarget } from "./EditDialog";
 
 type Props = {
@@ -15,7 +15,7 @@ type Props = {
    */
   row: RowRef | null;
   pinned?: boolean;
-  /** Pinned rows move within their pins; library items (row null) always show the arrows. */
+  /** Categories and library items always show the arrows; board items only while pinned. */
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   /** Where to go after deleting (e.g. leave a deleted category's page). */
@@ -50,9 +50,9 @@ export function AdminControls({ target, row, pinned = false, canMoveUp, canMoveD
     },
   }[row?.kind ?? "library"];
 
-  const movable = row ? pinned : true;
+  const movable = row?.kind === "item" ? pinned : true;
   const move = (direction: "up" | "down") =>
-    run(() => (row ? movePinned(row, direction) : moveLibraryItem(target.values.id, direction)));
+    run(() => (row ? moveRow(row, direction) : moveLibraryItem(target.values.id, direction)));
 
   const onRemove = () => {
     if (!confirm(remove.confirm)) return;

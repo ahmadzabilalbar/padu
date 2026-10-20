@@ -105,11 +105,15 @@ async function place(categoryId: string, itemId: string, pin: boolean) {
   if (error) throw error;
 }
 
+/** Create a category and open it, or with stay=1 (the category manager) just report success. */
 export async function createCategory(_prev: ActionState, form: FormData): Promise<ActionState> {
   let slug = "";
+  let name = "";
   try {
     if (!(await isAdmin())) return NOT_ADMIN;
-    const { name, description } = categoryFields(form);
+    const fields = categoryFields(form);
+    name = fields.name;
+    const { description } = fields;
     const parent_id = await parentField(form);
     const base = slugify(name);
 
@@ -124,6 +128,7 @@ export async function createCategory(_prev: ActionState, form: FormData): Promis
   } catch (err) {
     return fail(err);
   }
+  if (form.get("stay")) return { ok: true, message: `Added “${name}”.` };
   redirect(`/c/${slug}`);
 }
 
@@ -296,15 +301,16 @@ function update(ref: RowRef, values: Record<string, unknown>) {
 }
 
 /**
- * Pinned rows in the same group as ref, in pin order: one category's items, or
- * a category's siblings (the top level, or one parent's sub-categories).
+ * Rows in the same group as ref, in board order: one category's items, or a
+ * category's siblings (the top level, or one parent's sub-categories), pinned
+ * or not. Pinned rows always come first, so each pin status is ordered apart.
  */
-async function pinnedGroup(ref: RowRef) {
+async function group(ref: RowRef, pinned: boolean) {
   const idColumn = ref.kind === "item" ? "item_id" : "id";
   let q = db()
     .from(table(ref))
     .select(`${idColumn}, pin_order`)
-    .eq("is_pinned", true)
+    .eq("is_pinned", pinned)
     .order("pin_order", { ascending: true })
     .order("created_at", { ascending: false });
   if (ref.kind === "item") {
@@ -323,7 +329,7 @@ async function pinnedGroup(ref: RowRef) {
 }
 
 async function nextPinOrder(ref: RowRef) {
-  const rows = await pinnedGroup(ref);
+  const rows = await group(ref, true);
   return Math.max(0, ...rows.map((r) => r.pin_order)) + 1;
 }
 
@@ -345,11 +351,20 @@ export async function togglePin(rawRef: RowRef) {
   invalidateAll();
 }
 
-/** Move a pinned row up or down within its pinned group, then renumber 1..n. */
-export async function movePinned(rawRef: RowRef, direction: "up" | "down") {
+/**
+ * Move a row up or down among its siblings with the same pin status, then
+ * renumber that group 1..n. Items only move among pins (the rest are sorted by
+ * the viewer); categories can be ordered either way.
+ */
+export async function moveRow(rawRef: RowRef, direction: "up" | "down") {
   await requireAdmin();
   const ref = checkRef(rawRef);
-  const rows = await pinnedGroup(ref);
+
+  let q = db().from(table(ref)).select("is_pinned");
+  q = ref.kind === "item" ? q.eq("category_id", ref.categoryId).eq("item_id", ref.id) : q.eq("id", ref.id);
+  const { data: row, error } = await q.single();
+  if (error) throw error;
+  const rows = await group(ref, row.is_pinned);
 
   const from = rows.findIndex((r) => r.id === ref.id);
   const to = direction === "up" ? from - 1 : from + 1;
