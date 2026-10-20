@@ -1,11 +1,16 @@
 import Link from "next/link";
-import { FolderOpen, Layers, Pin } from "lucide-react";
+import { FolderOpen, Pin } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
 
 type Props = {
+  /** The cards to show, in order. */
   categories: Category[];
+  /** Every category, for parent names and each card's siblings (for the arrows). Defaults to `categories`. */
+  all?: Category[];
+  /** Show the main category's name under a sub-category's name. */
+  showParent?: boolean;
   isAdmin: boolean;
   /** Full-width layout (no sidebar), so allow a third column on large screens. */
   wide?: boolean;
@@ -15,7 +20,9 @@ type Props = {
   sub?: boolean;
 };
 
-export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: Props) {
+export function CategoryGrid({ categories, all = categories, showParent, isAdmin, wide, parents = [], sub }: Props) {
+  const byId = new Map(all.map((c) => [c.id, c]));
+
   if (categories.length === 0) {
     if (sub) return null;
     return (
@@ -32,6 +39,8 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
   return (
     <ul className={`grid gap-3 sm:grid-cols-2 ${wide ? "lg:grid-cols-3" : ""}`}>
       {categories.map((c) => {
+        const parent = showParent && c.parent_id ? byId.get(c.parent_id) : undefined;
+        const siblings = all.filter((s) => s.parent_id === c.parent_id);
         return (
           <li key={c.id} className="relative">
             <Link
@@ -44,22 +53,7 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                 {c.is_pinned && <Pin className="size-4 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
                 <h3 className="truncate font-semibold tracking-tight">{c.name}</h3>
               </div>
-              {c.subcategories.length > 0 && (
-                <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Sub-categories">
-                  {c.subcategories.slice(0, 5).map((s) => (
-                    <li
-                      key={s.id}
-                      className="inline-flex items-center gap-1 rounded-full bg-accent-500/10 px-2 py-0.5 text-xs font-medium text-accent-700 dark:text-accent-400"
-                    >
-                      <Layers className="size-3" />
-                      {s.name}
-                    </li>
-                  ))}
-                  {c.subcategories.length > 5 && (
-                    <li className="px-1 py-0.5 text-xs text-zinc-500">+{c.subcategories.length - 5} more</li>
-                  )}
-                </ul>
-              )}
+              {parent && <p className="mt-0.5 truncate text-xs text-zinc-500">{parent.name}</p>}
               <div className="mt-3 flex-1">
                 {c.preview.length ? (
                   <ul className="space-y-1.5 text-sm">
@@ -78,7 +72,7 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                     )}
                   </ul>
                 ) : (
-                  !c.subcategories.length && <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
+                  <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
                 )}
               </div>
             </Link>
@@ -92,7 +86,7 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                   }}
                   row={{ kind: "category", id: c.id }}
                   pinned={c.is_pinned}
-                  {...moveBounds(categories, c)}
+                  {...moveBounds(siblings, c)}
                 />
               </div>
             )}

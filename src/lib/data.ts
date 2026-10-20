@@ -75,6 +75,18 @@ export async function getCategories(): Promise<Category[]> {
 
 export const topLevel = (categories: Category[]) => categories.filter((c) => !c.parent_id);
 
+/**
+ * Home page cards, in board order: each main category's sub-categories in its
+ * place. A main category gets its own card only if it has no sub-categories or
+ * has items of its own (so those stay reachable).
+ */
+export function homeCards(categories: Category[]) {
+  return topLevel(categories).flatMap((main) => {
+    const children = categories.filter((c) => c.parent_id === main.id);
+    return children.length === 0 || main.item_count > 0 ? [main, ...children] : children;
+  });
+}
+
 /** A category with its parent (for the breadcrumb) and its sub-categories in full. */
 export async function getCategoryBySlug(slug: string) {
   const categories = await getCategories();

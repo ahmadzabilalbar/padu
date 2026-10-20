@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { CategoryForm } from "@/components/CategoryForm";
 import { CategoryGrid, GridSkeleton } from "@/components/CategoryGrid";
 import { isAdmin } from "@/lib/auth";
-import { getCategories, topLevel } from "@/lib/data";
+import { getCategories, homeCards, topLevel } from "@/lib/data";
 
 export default function Home() {
   return (
@@ -15,15 +15,15 @@ export default function Home() {
 async function Categories() {
   // Reading the cookie first keeps the DB out of the build; the list itself is still served from cache.
   const admin = await isAdmin();
-  const categories = topLevel(await getCategories());
-  const parents = categories.map(({ id, name }) => ({ id, name }));
+  const all = await getCategories();
+  const parents = topLevel(all).map(({ id, name }) => ({ id, name }));
 
   const list = (
     <section aria-labelledby="categories-heading">
       <h1 id="categories-heading" className="sr-only">
         Categories
       </h1>
-      <CategoryGrid categories={categories} isAdmin={admin} wide={!admin} parents={parents} />
+      <CategoryGrid categories={homeCards(all)} all={all} showParent isAdmin={admin} wide={!admin} parents={parents} />
     </section>
   );
 
