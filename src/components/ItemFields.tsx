@@ -5,7 +5,7 @@ import { ImagePlus, MapPin, X } from "lucide-react";
 import type { Item } from "@/lib/types";
 import { mapsUrl } from "@/lib/maps";
 
-type Values = Pick<Item, "title" | "url" | "location" | "image_url">;
+type Values = Pick<Item, "title" | "location" | "image_url">;
 
 /** The item's own fields, shared by the add form and the edit dialog. */
 export function ItemFields({ id, values }: { id: string; values?: Values }) {
@@ -44,12 +44,6 @@ export function ItemFields({ id, values }: { id: string; values?: Values }) {
             className="field pl-9"
           />
         </div>
-      </div>
-      <div>
-        <label htmlFor={`${id}-url`} className="label">
-          Link <span className="text-zinc-400">(optional)</span>
-        </label>
-        <input id={`${id}-url`} name="url" inputMode="url" maxLength={500} defaultValue={values?.url ?? ""} placeholder="example.com" className="field" />
       </div>
     </>
   );

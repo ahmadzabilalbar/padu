@@ -11,26 +11,6 @@ export function text(form: FormData, key: string, max: number, required = false)
   return value;
 }
 
-export function multiline(form: FormData, key: string, max: number): string | null {
-  const raw = form.get(key);
-  const value = typeof raw === "string" ? raw.trim() : "";
-  if (!value) return null;
-  if (value.length > max) throw new ValidationError(`${label(key)} must be ${max} characters or fewer.`);
-  return value;
-}
-
-export function httpUrl(form: FormData, key: string): string | null {
-  const value = text(form, key, 500);
-  if (!value) return null;
-  try {
-    const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
-    if (u.protocol !== "http:" && u.protocol !== "https:") throw new Error();
-    return u.toString();
-  } catch {
-    throw new ValidationError("Link must be a valid web address.");
-  }
-}
-
 /** Place name, address, coordinates or a Google Maps link (but no other links). */
 export function location(form: FormData, key: string): string | null {
   const value = text(form, key, 300);
@@ -77,7 +57,7 @@ export function slugify(name: string) {
 
 export class ValidationError extends Error {}
 
-const LABELS: Record<string, string> = { body: "Details", url: "Link", author: "Credit", location: "Location" };
+const LABELS: Record<string, string> = { location: "Location" };
 
 function label(key: string) {
   return LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);

@@ -7,7 +7,7 @@ import { endAdminSession, isAdmin, requireAdmin } from "@/lib/auth";
 import { IMAGE_BUCKET, tags } from "@/lib/data";
 import { db } from "@/lib/supabase";
 import type { ActionState } from "@/lib/types";
-import { httpUrl, image, location, slugify, text, uuid, ValidationError } from "@/lib/validate";
+import { image, location, slugify, text, uuid, ValidationError } from "@/lib/validate";
 
 /** A category, or an item as placed in one category. */
 export type RowRef = { kind: "category"; id: string } | { kind: "item"; id: string; categoryId: string };
@@ -62,7 +62,6 @@ async function parentField(form: FormData, selfId?: string): Promise<string | nu
 function itemFields(form: FormData) {
   return {
     title: text(form, "title", 120, true)!,
-    url: httpUrl(form, "url"),
     location: location(form, "location"),
   };
 }
