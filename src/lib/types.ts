@@ -11,7 +11,7 @@ export type Category = {
   /** Sub-categories in board order (empty for a sub-category). */
   subcategories: Pick<Category, "id" | "name" | "slug">[];
   /** Top items in board order (only filled on the category list). */
-  preview: { id: string; title: string; is_pinned: boolean }[];
+  preview: (Pick<Item, "id" | "title" | "image_url" | "location"> & { is_pinned: boolean })[];
 };
 
 /** An item in the library. The same item can sit in several categories. */

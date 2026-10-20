@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { FolderOpen, Pin } from "lucide-react";
+import { FolderOpen, Image as ImageIcon, MapPin, Pin } from "lucide-react";
+import { mapsUrl } from "@/lib/maps";
 import type { Category } from "@/lib/types";
 import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
@@ -43,15 +44,19 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
         const siblings = all.filter((s) => s.parent_id === c.parent_id);
         return (
           <li key={c.id} className="relative">
-            <Link
-              href={`/c/${c.slug}`}
-              className={`card group flex h-full flex-col p-5 transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:hover:border-zinc-700 ${
+            {/* The name's link stretches over the whole card; the photo/map icons sit above it. */}
+            <div
+              className={`card relative flex h-full flex-col p-5 transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:hover:border-zinc-700 ${
                 c.is_pinned ? "border-accent-500/40 ring-1 ring-accent-500/10 dark:border-accent-500/30" : ""
               }`}
             >
               <div className={`flex items-center gap-2 ${isAdmin ? "pr-24" : ""}`}>
                 {c.is_pinned && <Pin className="size-4 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
-                <h3 className="truncate font-semibold tracking-tight">{c.name}</h3>
+                <h3 className="truncate font-semibold tracking-tight">
+                  <Link href={`/c/${c.slug}`} className="after:absolute after:inset-0 after:rounded-2xl">
+                    {c.name}
+                  </Link>
+                </h3>
               </div>
               {parent && <p className="mt-0.5 truncate text-xs text-zinc-500">{parent.name}</p>}
               <div className="mt-3 flex-1">
@@ -65,6 +70,30 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                           <span className="mx-[5px] size-1 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
                         )}
                         <span className="truncate">{item.title}</span>
+                        {item.image_url && (
+                          <a
+                            href={item.image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Photo"
+                            aria-label={`Photo of ${item.title}`}
+                            className="relative z-10 -my-1 shrink-0 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400"
+                          >
+                            <ImageIcon className="size-3.5" />
+                          </a>
+                        )}
+                        {item.location && (
+                          <a
+                            href={mapsUrl(item.location)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Google Maps"
+                            aria-label={`${item.title} on Google Maps`}
+                            className={`relative z-10 -my-1 shrink-0 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400 ${item.image_url ? "-ml-1.5" : ""}`}
+                          >
+                            <MapPin className="size-3.5" />
+                          </a>
+                        )}
                       </li>
                     ))}
                     {c.item_count > c.preview.length && (
@@ -75,9 +104,9 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
                   <p className="text-sm text-zinc-400 dark:text-zinc-600">No items yet.</p>
                 )}
               </div>
-            </Link>
+            </div>
             {isAdmin && (
-              <div className="absolute top-3 right-3">
+              <div className="absolute top-3 right-3 z-10">
                 <AdminControls
                   target={{
                     kind: "category",

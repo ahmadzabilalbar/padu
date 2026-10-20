@@ -13,7 +13,7 @@ export const IMAGE_BUCKET = "item-images";
 
 type CategoryRow = Omit<Category, "item_count" | "preview" | "subcategories"> & {
   category_items: { count: number }[];
-  preview?: { is_pinned: boolean; item: { id: string; title: string } | null }[];
+  preview?: { is_pinned: boolean; item: Pick<ItemRow, "id" | "title" | "image_path" | "location"> | null }[];
 };
 
 type ItemRow = Omit<Item, "image_url">;
@@ -31,15 +31,20 @@ function toCategory({ category_items, preview, ...row }: CategoryRow): Category 
     ...row,
     subcategories: [],
     item_count: category_items?.[0]?.count ?? 0,
-    preview: (preview ?? []).flatMap((p) => (p.item ? [{ ...p.item, is_pinned: p.is_pinned }] : [])),
+    preview: (preview ?? []).flatMap(({ item, is_pinned }) => {
+      if (!item) return [];
+      const { image_path, ...rest } = item;
+      return [{ ...rest, image_url: imageUrl(image_path), is_pinned }];
+    }),
   };
 }
 
+function imageUrl(path: string | null) {
+  return path ? db().storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl : null;
+}
+
 function toItem(row: ItemRow): Item {
-  const image_url = row.image_path
-    ? db().storage.from(IMAGE_BUCKET).getPublicUrl(row.image_path).data.publicUrl
-    : null;
-  return { ...row, image_url };
+  return { ...row, image_url: imageUrl(row.image_path) };
 }
 
 /**
@@ -54,7 +59,7 @@ export async function getCategories(): Promise<Category[]> {
 
   const { data, error } = await db()
     .from("categories")
-    .select(`${CATEGORY_COLUMNS}, preview:category_items(is_pinned, item:items(id, title))`)
+    .select(`${CATEGORY_COLUMNS}, preview:category_items(is_pinned, item:items(id, title, image_path, location))`)
     .order("is_pinned", { ascending: false })
     .order("pin_order", { ascending: true })
     .order("created_at", { ascending: false })
