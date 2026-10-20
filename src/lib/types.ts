@@ -2,7 +2,6 @@ export type Category = {
   id: string;
   name: string;
   slug: string;
-  description: string | null;
   /** Set for a sub-category. Only one level deep. */
   parent_id: string | null;
   is_pinned: boolean;

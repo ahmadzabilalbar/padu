@@ -45,12 +45,6 @@ export function CategoryForm({ parents, parent }: Props) {
         <label htmlFor="cat-name" className="label">Name</label>
         <input id="cat-name" name="name" required maxLength={60} placeholder={parent ? "e.g. Mi Goreng" : "e.g. Makan"} className="field" />
       </div>
-      <div>
-        <label htmlFor="cat-desc" className="label">
-          Description <span className="text-zinc-400">(optional)</span>
-        </label>
-        <input id="cat-desc" name="description" maxLength={200} placeholder="What belongs here?" className="field" />
-      </div>
       <FormMessage state={state} />
       <button type="submit" disabled={pending} className="btn-primary w-full">
         <Plus className="size-4" />

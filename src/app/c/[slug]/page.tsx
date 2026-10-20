@@ -16,7 +16,6 @@ export async function generateMetadata({ params }: PageProps<"/c/[slug]">) {
   const { category, parent } = found;
   return {
     title: parent ? `${category.name} · ${parent.name}` : category.name,
-    description: category.description ?? undefined,
   };
 }
 
@@ -62,7 +61,6 @@ async function Board({ params }: { params: Promise<{ slug: string }> }) {
             {category.is_pinned && <Pin className="size-5 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
             <h1 className="truncate text-2xl font-semibold tracking-tight sm:text-4xl">{category.name}</h1>
           </div>
-          {category.description && <p className="mt-2 text-zinc-600 dark:text-zinc-400">{category.description}</p>}
         </div>
         {admin && (
           <div className="flex items-center gap-2">
@@ -73,7 +71,6 @@ async function Board({ params }: { params: Promise<{ slug: string }> }) {
                   values: {
                     id: category.id,
                     name: category.name,
-                    description: category.description,
                     parent_id: category.parent_id,
                   },
                   parents: hasChildren ? undefined : parents,

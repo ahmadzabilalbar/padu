@@ -19,7 +19,7 @@ type CategoryRow = Omit<Category, "item_count" | "preview" | "subcategories"> & 
 type ItemRow = Omit<Item, "image_url">;
 
 const CATEGORY_COLUMNS =
-  "id, name, slug, description, parent_id, is_pinned, pin_order, created_at, category_items(count)";
+  "id, name, slug, parent_id, is_pinned, pin_order, created_at, category_items(count)";
 
 const ITEM_COLUMNS = "id, title, body, url, author, image_path, location, created_at";
 

@@ -174,7 +174,6 @@ function Row({
           <p className="truncate text-xs text-zinc-500">
             {subs > 0 && `${subs} sub-categor${subs === 1 ? "y" : "ies"} · `}
             {c.item_count} item{c.item_count === 1 ? "" : "s"}
-            {c.description && <span className="hidden sm:inline"> · {c.description}</span>}
           </p>
         </div>
       </div>
@@ -183,7 +182,7 @@ function Row({
         <AdminControls
           target={{
             kind: "category",
-            values: { id: c.id, name: c.name, description: c.description, parent_id: c.parent_id },
+            values: { id: c.id, name: c.name, parent_id: c.parent_id },
             parents,
           }}
           row={{ kind: "category", id: c.id }}

@@ -30,7 +30,7 @@ function invalidateAll() {
 }
 
 function categoryFields(form: FormData) {
-  return { name: text(form, "name", 60, true)!, description: text(form, "description", 200) };
+  return { name: text(form, "name", 60, true)! };
 }
 
 /**
@@ -111,16 +111,14 @@ export async function createCategory(_prev: ActionState, form: FormData): Promis
   let name = "";
   try {
     if (!(await isAdmin())) return NOT_ADMIN;
-    const fields = categoryFields(form);
-    name = fields.name;
-    const { description } = fields;
+    name = categoryFields(form).name;
     const parent_id = await parentField(form);
     const base = slugify(name);
 
     // Retry with a short suffix if the slug is already taken.
     for (let attempt = 0; ; attempt++) {
       slug = attempt === 0 ? base : `${base}-${Math.random().toString(36).slice(2, 6)}`;
-      const { error } = await db().from("categories").insert({ name, description, parent_id, slug });
+      const { error } = await db().from("categories").insert({ name, parent_id, slug });
       if (!error) break;
       if (error.code !== "23505" || attempt >= 3) throw error;
     }
@@ -189,7 +187,7 @@ export async function addExistingItem(_prev: ActionState, form: FormData): Promi
   }
 }
 
-/** Edit a category's name, description and parent. The slug (its link) stays the same. */
+/** Edit a category's name and parent. The slug (its link) stays the same. */
 export async function updateCategory(_prev: ActionState, form: FormData): Promise<ActionState> {
   try {
     if (!(await isAdmin())) return NOT_ADMIN;

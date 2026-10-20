@@ -44,7 +44,6 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                 {c.is_pinned && <Pin className="size-4 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />}
                 <h3 className="truncate font-semibold tracking-tight">{c.name}</h3>
               </div>
-              {c.description && <p className="mt-1 line-clamp-1 text-sm text-zinc-500">{c.description}</p>}
               {c.subcategories.length > 0 && (
                 <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Sub-categories">
                   {c.subcategories.slice(0, 5).map((s) => (
@@ -88,7 +87,7 @@ export function CategoryGrid({ categories, isAdmin, wide, parents = [], sub }: P
                 <AdminControls
                   target={{
                     kind: "category",
-                    values: { id: c.id, name: c.name, description: c.description, parent_id: c.parent_id },
+                    values: { id: c.id, name: c.name, parent_id: c.parent_id },
                     parents: c.subcategories.length ? undefined : parents,
                   }}
                   row={{ kind: "category", id: c.id }}

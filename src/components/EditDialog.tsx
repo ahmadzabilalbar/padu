@@ -14,7 +14,7 @@ const shrinkPhoto = (form: FormData) => shrinkImage(form, "image");
 export type EditTarget =
   | {
       kind: "category";
-      values: Pick<Category, "id" | "name" | "description" | "parent_id">;
+      values: Pick<Category, "id" | "name" | "parent_id">;
       /** Top-level categories it can move into. Omit for a category with sub-categories (it must stay top level). */
       parents?: { id: string; name: string }[];
     }
@@ -58,9 +58,6 @@ export function EditDialog({ target, onClose }: { target: EditTarget; onClose: (
           <>
             <Field label="Name">
               <input name="name" required maxLength={60} defaultValue={target.values.name} className="field" />
-            </Field>
-            <Field label="Description" optional>
-              <input name="description" maxLength={200} defaultValue={target.values.description ?? ""} className="field" />
             </Field>
             {target.parents ? (
               <Field label="Inside">
