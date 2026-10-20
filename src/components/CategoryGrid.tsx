@@ -6,6 +6,13 @@ import { moveBounds } from "@/lib/order";
 import { AdminControls } from "./AdminControls";
 import { PhotoButton } from "./PhotoButton";
 
+/** Gold, silver and bronze for the top three items on each card (the admin's order). */
+const MEDALS = [
+  { label: "Best", className: "bg-linear-to-br from-amber-200 to-amber-400 text-amber-900 ring-amber-500/40" },
+  { label: "2nd best", className: "bg-linear-to-br from-zinc-100 to-zinc-300 text-zinc-700 ring-zinc-400/50" },
+  { label: "3rd best", className: "bg-linear-to-br from-orange-300 to-orange-500 text-orange-950 ring-orange-600/40" },
+];
+
 /** Photo/map icon in a card's item row. */
 const ICON_LINK =
   "grid size-7 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-accent-600 dark:hover:bg-zinc-800 dark:hover:text-accent-400";
@@ -71,14 +78,26 @@ export function CategoryGrid({ categories, all = categories, showParent, isAdmin
               <div className="mt-3 flex-1">
                 {c.preview.length ? (
                   <ul className="space-y-1.5 text-sm">
-                    {c.preview.map((item) => (
+                    {c.preview.map((item, rank) => (
                       <li key={item.id} className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                        {item.is_pinned ? (
-                          <Pin className="size-3.5 shrink-0 text-accent-600 dark:text-accent-400" aria-label="Pinned" />
-                        ) : (
-                          <span className="mx-[5px] size-1 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
-                        )}
-                        <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                        <span className="grid w-5 shrink-0 place-items-center">
+                          {rank < MEDALS.length ? (
+                            <span
+                              title={MEDALS[rank].label}
+                              aria-label={MEDALS[rank].label}
+                              className={`grid size-5 place-items-center rounded-full text-[10px] font-bold shadow-sm ring-1 ring-inset ${MEDALS[rank].className}`}
+                            >
+                              {rank + 1}
+                            </span>
+                          ) : item.is_pinned ? (
+                            <Pin className="size-3.5 text-accent-600 dark:text-accent-400" aria-label="Pinned" />
+                          ) : (
+                            <span className="size-1 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
+                          )}
+                        </span>
+                        <span className={`min-w-0 flex-1 truncate ${rank === 0 ? "font-medium text-zinc-900 dark:text-zinc-100" : ""}`}>
+                          {item.title}
+                        </span>
                         {/* Fixed slots on the right, so icons line up in columns across rows. */}
                         <span className="-my-1 flex shrink-0 items-center">
                           {item.image_url ? (
